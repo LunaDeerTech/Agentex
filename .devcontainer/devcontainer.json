@@ -1,0 +1,176 @@
+{
+  "name": "Agentex Development",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  
+  // Features to add to the dev container
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  // VS Code extensions to install
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Python
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
+        "ms-python.black-formatter",
+        "ms-python.isort",
+        "charliermarsh.ruff",
+        
+        // Vue & Frontend
+        "Vue.volar",
+        "Vue.vscode-typescript-vue-plugin",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        
+        // Database & Tools
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+        "cweijan.vscode-redis-client",
+        
+        // Git & Collaboration
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        
+        // Productivity
+        "streetsidesoftware.code-spell-checker",
+        "usernamehw.errorlens",
+        "gruntfuggly.todo-tree",
+        "aaron-bond.better-comments",
+        "christian-kohler.path-intellisense",
+        
+        // API & Testing
+        "humao.rest-client",
+        "rangav.vscode-thunder-client",
+        
+        // Docker
+        "ms-azuretools.vscode-docker",
+        
+        // Markdown
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint"
+      ],
+      "settings": {
+        // Python settings
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.analysis.typeCheckingMode": "basic",
+        "python.analysis.autoImportCompletions": true,
+        "[python]": {
+          "editor.defaultFormatter": "ms-python.black-formatter",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+          }
+        },
+        "isort.args": ["--profile", "black"],
+        
+        // Vue/TypeScript settings
+        "[vue]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        
+        // ESLint settings
+        "eslint.validate": [
+          "javascript",
+          "typescript",
+          "vue"
+        ],
+        
+        // Editor settings
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.detectIndentation": false,
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "files.eol": "\n",
+        
+        // Terminal settings
+        "terminal.integrated.defaultProfile.linux": "bash",
+        
+        // File associations
+        "files.associations": {
+          "*.vue": "vue"
+        }
+      }
+    }
+  },
+
+  // Port forwarding
+  "forwardPorts": [
+    8000,   // Backend API
+    5173,   // Frontend Vite dev server
+    5432,   // PostgreSQL
+    6379,   // Redis
+    19530,  // Milvus
+    9000,   // MinIO API
+    9001    // MinIO Console
+  ],
+  "portsAttributes": {
+    "8000": {
+      "label": "Backend API",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "Frontend Dev Server",
+      "onAutoForward": "openBrowser"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "silent"
+    },
+    "19530": {
+      "label": "Milvus",
+      "onAutoForward": "silent"
+    },
+    "9001": {
+      "label": "MinIO Console",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Commands to run after container creation
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  
+  // Commands to run after container starts
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+
+  // Environment variables
+  "containerEnv": {
+    "APP_ENV": "development",
+    "PYTHONPATH": "/workspace/backend"
+  },
+
+  // Run as non-root user
+  "remoteUser": "vscode",
+
+  // Mount options
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached,readonly"
+  ],
+
+  // Shutdown action
+  "shutdownAction": "stopCompose"
+}

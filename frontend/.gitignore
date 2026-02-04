@@ -1,0 +1,32 @@
+# Frontend dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+
+# Editor directories
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local env files
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Vite cache
+.vite/

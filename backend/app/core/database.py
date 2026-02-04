@@ -1,0 +1,91 @@
+"""Async database configuration using SQLAlchemy 2.0."""
+
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.orm import DeclarativeBase
+
+from app.core.config import settings
+
+
+class Base(DeclarativeBase):
+    """Base class for all SQLAlchemy models."""
+
+    pass
+
+
+# Create async engine
+engine: AsyncEngine = create_async_engine(
+    str(settings.DATABASE_URL),
+    pool_size=settings.DATABASE_POOL_SIZE,
+    max_overflow=settings.DATABASE_MAX_OVERFLOW,
+    pool_timeout=settings.DATABASE_POOL_TIMEOUT,
+    echo=settings.DATABASE_ECHO,
+    future=True,
+)
+
+# Create async session factory
+async_session_factory = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Dependency that provides an async database session.
+    
+    Usage:
+        @router.get("/items")
+        async def get_items(db: AsyncSession = Depends(get_db)):
+            ...
+    """
+    async with async_session_factory() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
+@asynccontextmanager
+async def get_db_context() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Context manager for database sessions outside of request context.
+    
+    Usage:
+        async with get_db_context() as session:
+            ...
+    """
+    async with async_session_factory() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
+async def init_db() -> None:
+    """Initialize database tables. Use Alembic for production migrations."""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+async def close_db() -> None:
+    """Close database connections."""
+    await engine.dispose()
