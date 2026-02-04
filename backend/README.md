@@ -108,7 +108,3 @@ ruff format .
 # Type checking
 mypy app
 ```
-
-## License
-
-MIT
