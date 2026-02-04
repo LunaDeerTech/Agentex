@@ -2,7 +2,7 @@
 export * from './request'
 
 // 导入各模块 API
-// export * from './modules/auth'
+export * from './auth'
+export * from './models'
 // export * from './modules/session'
-// export * from './modules/model'
 // export * from './modules/mcp'

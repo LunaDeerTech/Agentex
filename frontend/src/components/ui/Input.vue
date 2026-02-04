@@ -3,11 +3,14 @@
   import { cn } from '@/lib/utils'
 
   interface Props {
-    modelValue?: string
+    modelValue?: string | number
     placeholder?: string
     disabled?: boolean
     type?: 'text' | 'email' | 'password' | 'number' | 'search' | 'tel' | 'url'
     class?: string
+    min?: number | string
+    max?: number | string
+    step?: number | string
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -19,7 +22,7 @@
   })
 
   const emit = defineEmits<{
-    'update:modelValue': [value: string]
+    'update:modelValue': [value: string | number]
   }>()
 
   const inputClasses = computed(() =>
@@ -34,7 +37,8 @@
 
   function handleInput(event: Event) {
     const target = event.target as HTMLInputElement
-    emit('update:modelValue', target.value)
+    const value = props.type === 'number' ? target.valueAsNumber : target.value
+    emit('update:modelValue', value)
   }
 </script>
 
@@ -44,6 +48,9 @@
     :value="modelValue"
     :placeholder="placeholder"
     :disabled="disabled"
+    :min="min"
+    :max="max"
+    :step="step"
     :class="inputClasses"
     @input="handleInput"
   />

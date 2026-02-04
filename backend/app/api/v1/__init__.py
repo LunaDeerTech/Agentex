@@ -2,10 +2,11 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, users
+from app.api.v1 import auth, models, users
 
 api_router = APIRouter(prefix="/v1")
 
 # Include sub-routers
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
+api_router.include_router(models.router, prefix="/models", tags=["LLM Models"])

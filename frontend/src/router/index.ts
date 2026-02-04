@@ -30,6 +30,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Settings - API Keys' }
       },
       {
+        path: 'models',
+        name: 'SettingsModels',
+        component: () => import('@/views/settings/ModelsView.vue'),
+        meta: { title: 'Settings - LLM Models' }
+      },
+      {
         path: ':category',
         name: 'SettingsCategory',
         component: () => import('@/views/settings/ApiKeysView.vue'), // Temporary placeholder
