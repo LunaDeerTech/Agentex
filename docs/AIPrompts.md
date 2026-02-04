@@ -1,7 +1,7 @@
 # Agentex AI 开发 Prompt 指南
 
-> **版本**：1.0  
-> **更新日期**：2024-01  
+> **版本**：1.0
+> **更新日期**：2024-01
 > **用途**：为 AI 辅助开发提供标准化 Prompt 模板
 
 ---
@@ -53,7 +53,9 @@
 
 **技术栈：**
 - 后端：FastAPI 0.110+, Python 3.11+, SQLAlchemy 2.0, PostgreSQL 15+, Redis 7.0+
-- 前端：Vue 3.4+, TypeScript 5.3+, Vite 5.0+, Pinia, Element Plus
+- 前端：Vue 3.4+, TypeScript 5.3+, Vite 5.0+, Pinia, shadcn-vue, Inspira UI
+- UI 风格：Linear 极简风（深色主题、1px 边框、Inter/JetBrains Mono 字体）
+- 图标：Lucide Vue Next (stroke-width: 1.5px)
 - Agent 通信：AG-UI 协议（基于 HTTP SSE）
 - 向量数据库：Milvus 2.3+
 - 异步任务：Celery + Redis
@@ -170,10 +172,13 @@ agentex/
 
 **要求：**
 1. 使用 Vue 3 Composition API + TypeScript
-2. 使用 Element Plus 组件
-3. 响应式设计
-4. 加载状态和错误处理
-5. 使用 Pinia 管理状态（如需要）
+2. 使用 shadcn-vue 作为基础组件库
+3. 遵循 Linear 极简风格（深色主题、1px 边框、无阴影）
+4. 使用 Inspira UI 添加科技感效果（如需要）
+5. 使用 Lucide 图标（stroke-width: 1.5px）
+6. 响应式设计
+7. 加载状态和错误处理
+8. 使用 Pinia 管理状态（如需要）
 
 **输出：**
 1. Vue 页面组件
@@ -201,8 +206,10 @@ agentex/
 **要求：**
 1. 使用 Vue 3 Composition API + TypeScript
 2. 使用 defineProps 和 defineEmits
-3. 支持 v-model（如需要）
-4. 编写组件测试
+3. 遵循 Linear 极简风格（深色主题、1px 边框）
+4. 使用 shadcn-vue 基础组件
+5. 支持 v-model（如需要）
+6. 编写组件测试
 
 **输出：**
 1. Vue 组件文件
@@ -268,18 +275,28 @@ agentex/
 - Vite 5.0+
 - Pinia
 - Vue Router 4
-- Element Plus
+- shadcn-vue（基础 UI 组件库）
+- Inspira UI（科技感增强组件）
+- Lucide Vue Next（图标库）
 - Axios
+
+**设计风格：Linear 极简风**
+- 深色主题（#030303 底色）
+- 1px 细边框，不使用阴影区分层级
+- Inter 字体（UI）+ JetBrains Mono（代码）
+- Lucide 图标（stroke-width: 1.5px）
 
 **要求：**
 1. 使用 Vite 创建项目
 2. 配置 TypeScript（严格模式）
 3. 配置 ESLint + Prettier
-4. 配置 Element Plus（按需引入）
+4. 配置 shadcn-vue（按需引入组件）
 5. 配置 Pinia 状态管理
 6. 配置 Vue Router
 7. 配置 Axios 请求封装
-8. 创建基础布局
+8. 创建 Linear 风格的 CSS 变量定义
+9. 配置 Google Fonts（Inter, JetBrains Mono）
+10. 创建深色主题基础布局
 
 **输出：**
 请生成以下文件结构：
@@ -289,12 +306,14 @@ agentex/
 - src/router/index.ts
 - src/stores/index.ts
 - src/api/request.ts
+- src/styles/variables.css（CSS 变量定义）
 - src/App.vue
 
 **验收标准：**
 - 项目可以通过 `npm run dev` 启动
 - 访问首页显示欢迎信息
-- Element Plus 组件可以正常使用
+- Linear 深色主题正确应用
+- shadcn-vue 组件可以正常使用
 ```
 
 ### 任务 1.4：DevContainer 开发环境
@@ -471,10 +490,12 @@ agentex/
 - 响应拦截：401 自动跳转登录页
 
 **要求：**
-1. 使用 Element Plus 表单组件
-2. 使用 Composition API
-3. 完善的类型定义
-4. 友好的错误提示
+1. 使用 shadcn-vue 表单组件（Input, Button, Card）
+2. 遵循 Linear 极简风格（深色主题、1px 边框）
+3. 使用 Composition API + TypeScript
+4. 使用 Lucide 图标（stroke-width: 1.5px）
+5. 完善的类型定义
+6. 友好的错误提示（Toast 组件）
 
 **输出：**
 - src/views/auth/LoginView.vue
@@ -517,7 +538,7 @@ class BaseLLMClient(ABC):
     async def chat(self, messages: list, **kwargs) -> AsyncIterator[str]:
         """流式对话"""
         pass
-    
+
     @abstractmethod
     async def complete(self, prompt: str, **kwargs) -> str:
         """单次完成"""
@@ -550,7 +571,7 @@ class BaseLLMClient(ABC):
 class BaseAgent(ABC):
     def __init__(self, llm_client, tools: list = None, config: dict = None):
         pass
-    
+
     @abstractmethod
     async def run(self, input: str, context: dict = None) -> AsyncIterator[AgentEvent]:
         """运行 Agent，产生 AG-UI 事件流"""
@@ -620,15 +641,15 @@ class MCPClient(ABC):
     @abstractmethod
     async def connect(self) -> None:
         pass
-    
+
     @abstractmethod
     async def list_tools(self) -> list[Tool]:
         pass
-    
+
     @abstractmethod
     async def call_tool(self, name: str, arguments: dict) -> Any:
         pass
-    
+
     @abstractmethod
     async def disconnect(self) -> None:
         pass
@@ -750,11 +771,11 @@ class VectorStore(ABC):
     @abstractmethod
     async def add_documents(self, docs: list[Document]) -> list[str]:
         pass
-    
+
     @abstractmethod
     async def search(self, query: str, top_k: int = 5) -> list[Document]:
         pass
-    
+
     @abstractmethod
     async def delete(self, ids: list[str]) -> None:
         pass
@@ -905,15 +926,15 @@ class TestAuthService:
     async def test_register_success(self):
         """测试正常注册"""
         pass
-    
+
     async def test_register_duplicate_email(self):
         """测试重复邮箱注册"""
         pass
-    
+
     async def test_login_success(self):
         """测试正常登录"""
         pass
-    
+
     async def test_login_wrong_password(self):
         """测试密码错误"""
         pass
@@ -951,7 +972,7 @@ test.describe('用户认证', () => {
   test('用户可以注册新账号', async ({ page }) => {
     // ...
   });
-  
+
   test('用户可以登录', async ({ page }) => {
     // ...
   });
@@ -961,7 +982,7 @@ test.describe('对话功能', () => {
   test('用户可以创建新会话', async ({ page }) => {
     // ...
   });
-  
+
   test('用户可以发送消息并收到回复', async ({ page }) => {
     // ...
   });
@@ -1275,7 +1296,7 @@ class ExampleUpdate(BaseModel):
 
 class ExampleResponse(ExampleBase):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: UUID
     created_at: datetime
     updated_at: datetime

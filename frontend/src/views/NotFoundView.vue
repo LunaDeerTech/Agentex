@@ -1,58 +1,103 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
-
-function goHome() {
-  router.push('/')
-}
+  import { Home, ArrowLeft } from 'lucide-vue-next'
+  import { RouterLink } from 'vue-router'
 </script>
 
 <template>
-  <div class="not-found-container">
-    <div class="not-found-content">
+  <div class="not-found-view">
+    <div class="content">
       <h1 class="error-code">404</h1>
-      <p class="error-message">页面不存在</p>
-      <p class="error-description">抱歉，您访问的页面不存在或已被移除。</p>
-      <el-button type="primary" @click="goHome">
-        <el-icon class="el-icon--left"><HomeFilled /></el-icon>
-        返回首页
-      </el-button>
+      <h2 class="error-title">Page Not Found</h2>
+      <p class="error-description">The page you're looking for doesn't exist or has been moved.</p>
+      <div class="actions">
+        <RouterLink to="/" class="btn btn-primary">
+          <Home class="w-4 h-4" />
+          <span>Go Home</span>
+        </RouterLink>
+        <button class="btn btn-secondary" @click="$router.back()">
+          <ArrowLeft class="w-4 h-4" />
+          <span>Go Back</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.not-found-container {
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--bg-color);
-}
+  .not-found-view {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-8);
+  }
 
-.not-found-content {
-  text-align: center;
-}
+  .content {
+    text-align: center;
+    max-width: 400px;
+  }
 
-.error-code {
-  font-size: 120px;
-  font-weight: 700;
-  color: var(--color-primary);
-  margin: 0;
-  line-height: 1;
-}
+  .error-code {
+    font-size: 8rem;
+    font-weight: var(--font-bold);
+    line-height: 1;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--spacing-4);
+  }
 
-.error-message {
-  font-size: 24px;
-  color: var(--text-color-primary);
-  margin: 16px 0;
-}
+  .error-title {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--spacing-3);
+  }
 
-.error-description {
-  font-size: 14px;
-  color: var(--text-color-secondary);
-  margin-bottom: 32px;
-}
+  .error-description {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-8);
+  }
+
+  .actions {
+    display: flex;
+    gap: var(--spacing-4);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-5);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    border-radius: var(--radius-md);
+    border: var(--border-width) solid transparent;
+    cursor: pointer;
+    transition:
+      background var(--transition-fast),
+      border-color var(--transition-fast);
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--color-accent-primary);
+    color: var(--color-text-primary);
+    border-color: var(--color-accent-primary);
+  }
+
+  .btn-primary:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-text-primary);
+    border-color: var(--color-border-default);
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-text-tertiary);
+  }
 </style>

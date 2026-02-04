@@ -1,6 +1,10 @@
 import { createPinia } from 'pinia'
 
-export const pinia = createPinia()
+const pinia = createPinia()
 
-// Re-export stores
-export * from './user'
+export default pinia
+
+// 导出所有 stores
+export * from './modules/user'
+export * from './modules/session'
+export * from './modules/app'

@@ -1,23 +1,17 @@
 import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import ElementPlus from 'element-plus'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import 'element-plus/dist/index.css'
-
 import App from './App.vue'
 import router from './router'
+import pinia from './stores'
 
-import './styles/index.css'
+// Styles
+import './styles/variables.css'
 
+// Create app
 const app = createApp(App)
 
-// Register Element Plus Icons
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
-}
-
-app.use(createPinia())
+// Use plugins
+app.use(pinia)
 app.use(router)
-app.use(ElementPlus)
 
+// Mount app
 app.mount('#app')

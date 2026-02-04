@@ -5,7 +5,7 @@ Agentex is a Web AI Agent platform with MCP (Model Context Protocol) integration
 
 ## Architecture Summary
 ```
-Frontend (Vue 3 + TS + Element Plus)
+Frontend (Vue 3 + TS + shadcn-vue + Inspira UI)
     ↓ HTTP REST / AG-UI (SSE)
 Backend (FastAPI + SQLAlchemy 2.0 async)
     ↓                    ↓
@@ -18,9 +18,10 @@ Milvus (Vector DB for RAG)
 | Layer | Stack |
 |-------|-------|
 | Backend | Python 3.11+, FastAPI 0.110+, SQLAlchemy 2.0 (async), Pydantic 2.0 |
-| Frontend | Vue 3.4+, TypeScript 5.3+, Vite 5.0+, Pinia, Element Plus 2.5+ |
+| Frontend | Vue 3.4+, TypeScript 5.3+, Vite 5.0+, Pinia, shadcn-vue, Inspira UI |
 | Database | PostgreSQL 15+, Redis 7.0+, Milvus 2.3+ |
 | Communication | AG-UI protocol (SSE), WebSocket for WS-MCP |
+| UI Design | Linear 极简风 (Dark theme, 1px borders, Inter/JetBrains Mono fonts) |
 
 ## Project Structure (Target)
 ```
@@ -60,7 +61,11 @@ agentex/
 
 ### Frontend Conventions
 - **Composition API + TypeScript**: All components use `<script setup lang="ts">`
-- **Element Plus theming**: Follow color specs in [FrontendDesign.md](docs/FrontendDesign.md#12-色彩规范)
+- **Linear 极简风格**: Dark theme with 1px borders, no shadows for elevation
+- **shadcn-vue + Inspira UI**: Base components from shadcn-vue, sci-fi effects from Inspira UI
+- **Color palette**: Follow Obsidian palette in [FrontendDesign.md](docs/FrontendDesign.md#13-色彩规范)
+- **Typography**: Inter for UI text, JetBrains Mono for code/agent output
+- **Icons**: Lucide with `stroke-width: 1.5px`
 - **Pinia stores**: One store per domain (user, session, model, mcp, etc.)
 - **API layer**: Wrap all Axios calls in `src/api/` modules
 
@@ -102,7 +107,7 @@ cd backend
 pip install -r requirements.txt
 python -m uvicorn main:app --reload
 
-# Frontend  
+# Frontend
 cd frontend
 npm install
 npm run dev

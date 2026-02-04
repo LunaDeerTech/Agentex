@@ -1,180 +1,314 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+  import { Bot, Sparkles, Zap, Database, ArrowRight } from 'lucide-vue-next'
+  import { RouterLink } from 'vue-router'
 
-const router = useRouter()
-const isHovered = ref(false)
-
-const features = [
-  { icon: 'ChatDotRound', title: 'Agent 对话', desc: '多种 Agent 架构支持' },
-  { icon: 'Connection', title: 'MCP 集成', desc: '标准 MCP 协议支持' },
-  { icon: 'Document', title: '知识库', desc: 'RAG 增强检索' },
-  { icon: 'Cpu', title: 'SKILL 管理', desc: '自定义技能编排' },
-]
-
-function goToChat() {
-  router.push('/chat')
-}
-
-function goToLogin() {
-  router.push('/login')
-}
+  const features = [
+    {
+      icon: Bot,
+      title: 'AI Agents',
+      description: 'Intelligent agents with ReAct reasoning and tool integration'
+    },
+    {
+      icon: Zap,
+      title: 'MCP Integration',
+      description: 'Connect to any MCP server for extended capabilities'
+    },
+    {
+      icon: Database,
+      title: 'RAG Knowledge Base',
+      description: 'Build and query vector-based knowledge repositories'
+    },
+    {
+      icon: Sparkles,
+      title: 'SKILL Engine',
+      description: 'Create reusable skills with natural language definitions'
+    }
+  ]
 </script>
 
 <template>
-  <div class="home-container">
-    <div class="home-content">
-      <!-- Logo & Title -->
-      <div class="hero-section">
-        <div class="logo">
-          <el-icon :size="64" color="#409EFF">
-            <Cpu />
-          </el-icon>
+  <div class="home-view">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <Sparkles class="w-4 h-4" />
+          <span>AI Agent Platform</span>
         </div>
-        <h1 class="title">Agentex</h1>
-        <p class="subtitle">Web AI Agent Platform</p>
-        <p class="description">
-          集成 MCP 能力、RAG 知识库、SKILL 管理和规则引擎的智能 Agent 平台
+
+        <h1 class="hero-title">
+          Welcome to
+          <span class="text-gradient">Agentex</span>
+        </h1>
+
+        <p class="hero-description">
+          A powerful Web AI Agent platform with MCP integration, RAG knowledge bases, SKILL
+          management, and an intelligent rule engine.
         </p>
-      </div>
 
-      <!-- Features -->
-      <div class="features-section">
-        <div v-for="feature in features" :key="feature.title" class="feature-card">
-          <el-icon :size="32" color="#409EFF">
-            <component :is="feature.icon" />
-          </el-icon>
-          <h3>{{ feature.title }}</h3>
-          <p>{{ feature.desc }}</p>
+        <div class="hero-actions">
+          <RouterLink to="/chat" class="btn btn-primary">
+            <span>Start Chat</span>
+            <ArrowRight class="w-4 h-4" />
+          </RouterLink>
+          <a
+            href="https://github.com/agentex"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-secondary"
+          >
+            View on GitHub
+          </a>
         </div>
       </div>
 
-      <!-- Actions -->
-      <div class="actions-section">
-        <el-button
-          type="primary"
-          size="large"
-          :class="{ 'is-hovered': isHovered }"
-          @mouseenter="isHovered = true"
-          @mouseleave="isHovered = false"
-          @click="goToChat"
-        >
-          <el-icon class="el-icon--left"><ChatDotRound /></el-icon>
-          开始对话
-        </el-button>
-        <el-button size="large" @click="goToLogin"> 登录 / 注册 </el-button>
-      </div>
+      <!-- Decorative Grid -->
+      <div class="hero-grid"></div>
+    </section>
 
-      <!-- Version Info -->
-      <div class="version-info">
-        <span>Version 1.0.0</span>
-        <el-divider direction="vertical" />
-        <span>Powered by Vue 3 + FastAPI</span>
+    <!-- Features Section -->
+    <section class="features">
+      <h2 class="section-title">Core Features</h2>
+      <div class="features-grid">
+        <div v-for="feature in features" :key="feature.title" class="feature-card">
+          <div class="feature-icon">
+            <component :is="feature.icon" class="w-5 h-5" />
+          </div>
+          <h3 class="feature-title">{{ feature.title }}</h3>
+          <p class="feature-description">{{ feature.description }}</p>
+        </div>
       </div>
-    </div>
+    </section>
+
+    <!-- Status Section -->
+    <section class="status">
+      <div class="status-card">
+        <div class="status-indicator"></div>
+        <span class="status-text">System Online</span>
+        <span class="status-version">v0.1.0</span>
+      </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.home-container {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 24px;
-}
-
-.home-content {
-  max-width: 800px;
-  width: 100%;
-  text-align: center;
-}
-
-.hero-section {
-  margin-bottom: 48px;
-}
-
-.logo {
-  margin-bottom: 24px;
-  display: inline-flex;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 24px;
-  backdrop-filter: blur(10px);
-}
-
-.title {
-  font-size: 48px;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 8px;
-  letter-spacing: 2px;
-}
-
-.subtitle {
-  font-size: 20px;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 16px;
-}
-
-.description {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
-  max-width: 500px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-.features-section {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 48px;
-}
-
-@media (max-width: 768px) {
-  .features-section {
-    grid-template-columns: repeat(2, 1fr);
+  .home-view {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-8) var(--spacing-4);
   }
-}
 
-.feature-card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: 24px 16px;
-  transition: all 0.3s ease;
-}
+  /* Hero Section */
+  .hero {
+    position: relative;
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+    padding: var(--spacing-16) 0;
+  }
 
-.feature-card:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-4px);
-}
+  .hero-content {
+    position: relative;
+    z-index: 1;
+  }
 
-.feature-card h3 {
-  color: #fff;
-  font-size: 16px;
-  margin: 12px 0 8px;
-}
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-4);
+    background: var(--color-bg-secondary);
+    border: var(--border-width) solid var(--color-border-default);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-6);
+  }
 
-.feature-card p {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 13px;
-}
+  .hero-title {
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    font-weight: var(--font-bold);
+    line-height: 1.1;
+    margin-bottom: var(--spacing-6);
+    letter-spacing: -0.02em;
+  }
 
-.actions-section {
-  margin-bottom: 32px;
-}
+  .hero-description {
+    font-size: var(--text-lg);
+    color: var(--color-text-secondary);
+    max-width: 600px;
+    margin: 0 auto var(--spacing-8);
+    line-height: var(--leading-relaxed);
+  }
 
-.actions-section .el-button {
-  margin: 0 8px;
-  min-width: 140px;
-}
+  .hero-actions {
+    display: flex;
+    gap: var(--spacing-4);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 
-.version-info {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
-}
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-6);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    border-radius: var(--radius-md);
+    border: var(--border-width) solid transparent;
+    cursor: pointer;
+    transition:
+      background var(--transition-fast),
+      border-color var(--transition-fast);
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--color-accent-primary);
+    color: var(--color-text-primary);
+    border-color: var(--color-accent-primary);
+  }
+
+  .btn-primary:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-text-primary);
+    border-color: var(--color-border-default);
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-text-tertiary);
+  }
+
+  /* Hero Grid */
+  .hero-grid {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 1200px;
+    height: 100%;
+    background-image:
+      linear-gradient(var(--color-border-muted) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-border-muted) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.3;
+    mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+  }
+
+  /* Features Section */
+  .features {
+    max-width: 1000px;
+    width: 100%;
+    padding: var(--spacing-16) 0;
+  }
+
+  .section-title {
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    text-align: center;
+    margin-bottom: var(--spacing-8);
+    color: var(--color-text-secondary);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-4);
+  }
+
+  .feature-card {
+    padding: var(--spacing-6);
+    background: var(--color-bg-secondary);
+    border: var(--border-width) solid var(--color-border-default);
+    border-radius: var(--radius-lg);
+    transition:
+      border-color var(--transition-fast),
+      background var(--transition-fast);
+  }
+
+  .feature-card:hover {
+    border-color: var(--color-border-focus);
+    background: var(--color-bg-tertiary);
+  }
+
+  .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--color-accent-bg);
+    border: var(--border-width) solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    color: var(--color-accent-primary);
+    margin-bottom: var(--spacing-4);
+  }
+
+  .feature-title {
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--spacing-2);
+  }
+
+  .feature-description {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-relaxed);
+  }
+
+  /* Status Section */
+  .status {
+    padding: var(--spacing-8) 0;
+  }
+
+  .status-card {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-5);
+    background: var(--color-bg-secondary);
+    border: var(--border-width) solid var(--color-border-default);
+    border-radius: var(--radius-full);
+  }
+
+  .status-indicator {
+    width: 8px;
+    height: 8px;
+    background: var(--color-success);
+    border-radius: var(--radius-full);
+    animation: pulse-status 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-status {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  .status-text {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .status-version {
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+    font-family: var(--font-mono);
+  }
 </style>

@@ -1,5 +1,14 @@
 <script setup lang="ts">
-// App root component
+  import { onMounted } from 'vue'
+  import { RouterView } from 'vue-router'
+  import { useAppStore } from './stores'
+
+  const appStore = useAppStore()
+
+  onMounted(() => {
+    // Initialize dark theme
+    appStore.initTheme()
+  })
 </script>
 
 <template>
@@ -7,8 +16,7 @@
 </template>
 
 <style>
-#app {
-  width: 100%;
-  height: 100%;
-}
+  #app {
+    min-height: 100vh;
+  }
 </style>

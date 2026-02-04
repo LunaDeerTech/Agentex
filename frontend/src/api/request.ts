@@ -1,126 +1,156 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
-import { ElMessage } from 'element-plus'
-import { useUserStore } from '@/stores/user'
-import router from '@/router'
+import axios, {
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig
+} from 'axios'
+import { useUserStore } from '@/stores'
 
-// Response interface following API design
+// API 响应标准格式
 export interface ApiResponse<T = unknown> {
   code: number
   message: string
   data: T
 }
 
-// Error codes mapping
-const ERROR_MESSAGES: Record<number, string> = {
-  40001: '无效的请求参数',
-  40101: '未授权访问',
-  40102: 'Token 已过期',
-  40103: '无效的 Token',
-  40301: '权限不足',
-  40401: '资源不存在',
-  50001: '服务器内部错误',
-  50002: '数据库错误',
-  50003: '外部服务错误',
+// 分页响应格式
+export interface PaginatedResponse<T> {
+  items: T[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
 }
 
-// Create axios instance
+// 错误码定义
+export const ErrorCodes = {
+  SUCCESS: 0,
+  // 客户端错误 40xxx
+  BAD_REQUEST: 40000,
+  UNAUTHORIZED: 40100,
+  FORBIDDEN: 40300,
+  NOT_FOUND: 40400,
+  VALIDATION_ERROR: 40001,
+  // 服务端错误 50xxx
+  INTERNAL_ERROR: 50000,
+  SERVICE_UNAVAILABLE: 50300
+} as const
+
+// 创建 axios 实例
 const request: AxiosInstance = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 30000,
   headers: {
-    'Content-Type': 'application/json',
-  },
+    'Content-Type': 'application/json'
+  }
 })
 
-// Request interceptor
+// 请求拦截器
 request.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const userStore = useUserStore()
-    const token = userStore.getToken()
+    const token = userStore.token
 
-    if (token) {
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
 
     return config
   },
-  (error: unknown) => {
+  error => {
+    console.error('Request error:', error)
     return Promise.reject(error)
   }
 )
 
-// Response interceptor
+// 响应拦截器
 request.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
     const { code, message, data } = response.data
 
-    // Success
-    if (code === 0) {
+    // 业务成功
+    if (code === ErrorCodes.SUCCESS) {
       return data as AxiosResponse
     }
 
-    // Business error
-    const errorMessage = ERROR_MESSAGES[code] || message || '请求失败'
-    ElMessage.error(errorMessage)
+    // 业务错误
+    console.error(`API Error [${code}]: ${message}`)
 
-    return Promise.reject(new Error(errorMessage))
+    // 处理特定错误码
+    if (code === ErrorCodes.UNAUTHORIZED) {
+      const userStore = useUserStore()
+      userStore.logout()
+      window.location.href = '/login'
+    }
+
+    return Promise.reject(new Error(message))
   },
-  (error: unknown) => {
-    // Network error or server error
-    const axiosError = error as { response?: { status: number; data?: { message?: string } }; request?: unknown }
-    if (axiosError.response) {
-      const { status, data } = axiosError.response
+  error => {
+    // 网络错误或服务器错误
+    const message = error.response?.data?.message || error.message || 'Network error'
+    console.error('Response error:', message)
 
-      switch (status) {
-        case 401:
-          // Unauthorized - redirect to login
-          ElMessage.error('登录已过期，请重新登录')
-          useUserStore().logout()
-          router.push('/login')
-          break
-        case 403:
-          ElMessage.error('权限不足')
-          break
-        case 404:
-          ElMessage.error('请求的资源不存在')
-          break
-        case 500:
-          ElMessage.error(data?.message || '服务器内部错误')
-          break
-        default:
-          ElMessage.error(data?.message || '请求失败')
-      }
-    } else if (axiosError.request) {
-      ElMessage.error('网络连接失败，请检查网络')
-    } else {
-      ElMessage.error('请求配置错误')
+    // 处理 401 未授权
+    if (error.response?.status === 401) {
+      const userStore = useUserStore()
+      userStore.logout()
+      window.location.href = '/login'
     }
 
     return Promise.reject(error)
   }
 )
 
-// HTTP methods wrapper
-export const http = {
-  get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return request.get(url, config)
-  },
+// 封装通用请求方法
+export async function get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  const response = await request.get<T, T>(url, config)
+  return response
+}
 
-  post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    return request.post(url, data, config)
-  },
+export async function post<T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig
+): Promise<T> {
+  const response = await request.post<T, T>(url, data, config)
+  return response
+}
 
-  put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    return request.put(url, data, config)
-  },
+export async function put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+  const response = await request.put<T, T>(url, data, config)
+  return response
+}
 
-  patch<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    return request.patch(url, data, config)
-  },
+export async function patch<T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig
+): Promise<T> {
+  const response = await request.patch<T, T>(url, data, config)
+  return response
+}
 
-  delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return request.delete(url, config)
-  },
+export async function del<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  const response = await request.delete<T, T>(url, config)
+  return response
+}
+
+// SSE 事件流处理（用于 AG-UI 协议）
+export function createEventSource(
+  url: string,
+  onMessage: (event: MessageEvent) => void,
+  onError?: (error: Event) => void
+): EventSource {
+  const userStore = useUserStore()
+  const token = userStore.token
+  const fullUrl = token ? `${url}${url.includes('?') ? '&' : '?'}token=${token}` : url
+
+  const eventSource = new EventSource(fullUrl)
+
+  eventSource.onmessage = onMessage
+  eventSource.onerror = onError || (error => console.error('SSE error:', error))
+
+  return eventSource
 }
 
 export default request

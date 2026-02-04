@@ -63,7 +63,9 @@
 |------|------|---------- |
 | 前端框架 | Vue 3 + TypeScript | ✅ |
 | 前端构建 | Vite | ✅ |
-| 前端 UI | Element Plus | ✅ |
+| 前端 UI | shadcn-vue + Inspira UI | ✅ |
+| UI 风格 | Linear 极简风（深色主题） | ✅ |
+| 图标库 | Lucide Vue Next | ✅ |
 | 后端框架 | FastAPI | ✅ |
 | 数据库 | PostgreSQL | ✅ |
 | 缓存 | Redis | ✅ |

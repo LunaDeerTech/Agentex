@@ -6,49 +6,122 @@
 |------|------|
 | 产品名称 | Agentex |
 | 版本 | 1.0.0 |
-| 文档版本 | 1.0 |
-| 更新日期 | 2026-02-03 |
+| 文档版本 | 1.1 |
+| 更新日期 | 2026-02-04 |
+| 设计风格 | Linear 极简风 |
 
 ---
 
 ## 1. 设计规范
 
-### 1.1 设计原则
+### 1.1 设计风格
+
+本项目采用 **Linear 极简风格**（The "Linear" Look），这是目前 AI 和开发者工具领域的"黄金标准"。
+
+**核心特点：**
+- 纯黑/深灰底色，营造深邃的科技感
+- 超细边框（1px），使用边框而非阴影区分层级
+- 微妙的边框渐变，产生金属拉丝的物理质感
+- 类似代码编辑器的冷色调配色
+- 克制、精密的动效设计
+
+**为什么适合 AI Agent：**
+这种风格自带"专业、高效、可靠"的滤镜。Agent 通常涉及大量自动化任务，这种严谨的工业美感能增加用户对 AI 稳定性的信任。
+
+**设计参考：**
+- [Linear](https://linear.app) - 鼻祖级应用
+- [Resend](https://resend.com) - 边框和排版的教科书
+- [Supabase](https://supabase.com) - 优秀的深色模式处理
+
+### 1.2 设计原则
 
 | 原则 | 说明 |
 |------|------|
-| 简洁性 | 界面简洁明了，减少认知负担 |
+| 极简克制 | 减少视觉噪音，每个元素都有明确目的 |
+| 层级分明 | 通过"黑色的层级"（不同深度的灰色）构建空间感 |
+| 精密细节 | 1px 边框、微妙渐变、精确间距 |
 | 一致性 | 统一的交互模式和视觉风格 |
-| 响应性 | 快速反馈用户操作 |
+| 响应性 | 快速反馈用户操作，动效克制但流畅 |
 | 可访问性 | 支持键盘操作和屏幕阅读器 |
 
-### 1.2 色彩规范
+### 1.3 色彩规范（Linear "Obsidian" Palette）
 
-| 类型 | 色值 | 用途 |
-|------|------|------|
-| 主色调 | #409EFF | 主要按钮、链接、强调 |
-| 成功色 | #67C23A | 成功状态、确认操作 |
-| 警告色 | #E6A23C | 警告提示 |
-| 危险色 | #F56C6C | 错误、删除操作 |
-| 信息色 | #909399 | 辅助信息 |
-| 背景色 | #F5F7FA | 页面背景 |
-| 边框色 | #DCDFE6 | 边框、分隔线 |
-| 文字主色 | #303133 | 主要文字 |
-| 文字次色 | #606266 | 次要文字 |
-| 文字占位 | #C0C4CC | 占位文字 |
+Linear 风格的精髓在于"黑色的层级"。它不是死板的纯黑，而是通过不同深度的灰色（Zinc/Slate）构建出空间感。
 
-### 1.3 字体规范
+#### 1.3.1 主色调
 
-| 类型 | 字体 | 大小 |
-|------|------|------|
-| 标题 H1 | PingFang SC, Microsoft YaHei | 24px |
-| 标题 H2 | PingFang SC, Microsoft YaHei | 20px |
-| 标题 H3 | PingFang SC, Microsoft YaHei | 18px |
-| 正文 | PingFang SC, Microsoft YaHei | 14px |
-| 辅助文字 | PingFang SC, Microsoft YaHei | 12px |
-| 代码 | Consolas, Monaco, monospace | 13px |
+| 类型 | CSS 变量 | 色值 | 用途 |
+|------|----------|------|------|
+| 底色 (Canvas) | `--bg-background` | `#030303` | 接近纯黑，深邃的底色 |
+| 层级一 (Card/Panel) | `--bg-card` | `#09090B` | 主要的对话窗口或功能块 |
+| 层级二 (Sidebar) | `--bg-secondary` | `#0C0C0E` | 侧边栏或不活动的容器 |
+| 层级三 (Elevated) | `--bg-elevated` | `#18181B` | 弹窗、下拉菜单背景 |
 
-### 1.4 间距规范
+#### 1.3.2 边框色
+
+| 类型 | CSS 变量 | 色值 | 用途 |
+|------|----------|------|------|
+| 默认边框 | `--border-default` | `#27272A` | **核心：** 极细的 1px 描边，区分空间 |
+| 高亮边框 | `--border-active` | `#3F3F46` | 鼠标悬浮或选中状态 |
+| 强调边框 | `--border-accent` | `#6366F1` | 聚焦输入框、活动选项卡 |
+
+#### 1.3.3 功能色
+
+| 类型 | CSS 变量 | 色值 | 用途 |
+|------|----------|------|------|
+| 主色 (Accent) | `--color-accent` | `#6366F1` | Linear 标志性紫蓝色，AI 动作、主按钮 |
+| 成功色 | `--color-success` | `#22C55E` | 成功状态、确认操作 |
+| 警告色 | `--color-warning` | `#EAB308` | 警告提示 |
+| 错误色 (Destructive) | `--color-destructive` | `#F43F5E` | 极其克制的红，停止或删除 |
+| 信息色 | `--color-info` | `#3B82F6` | 辅助信息 |
+
+#### 1.3.4 文字色
+
+| 类型 | CSS 变量 | 色值 | 用途 |
+|------|----------|------|------|
+| 主要文字 | `--text-primary` | `#FAFAFA` | 标题、重要内容 |
+| 次要文字 | `--text-secondary` | `#A1A1AA` | 正文、描述 |
+| 辅助文字 | `--text-muted` | `#71717A` | 时间戳、占位符 |
+| 禁用文字 | `--text-disabled` | `#52525B` | 禁用状态 |
+
+#### 1.3.5 渐变效果
+
+```css
+/* AI 思考时的呼吸灯效果 */
+--gradient-ai-thinking: linear-gradient(135deg, #6366F1 0%, #A855F7 100%);
+
+/* 边框渐变（金属拉丝质感） */
+--gradient-border: linear-gradient(180deg, #333333 0%, #111111 100%);
+
+/* 主按钮渐变 */
+--gradient-button-primary: linear-gradient(180deg, #7C3AED 0%, #6366F1 100%);
+```
+
+### 1.4 字体规范
+
+放弃系统自带字体，选择更具工业感的无衬线字体。
+
+| 类型 | 字体 | 大小 | 行高 | 字重 |
+|------|------|------|------|------|
+| 标题 H1 | Inter, sans-serif | 28px | 1.3 | 600 |
+| 标题 H2 | Inter, sans-serif | 22px | 1.3 | 600 |
+| 标题 H3 | Inter, sans-serif | 18px | 1.4 | 600 |
+| 正文 | Inter, sans-serif | 14px | 1.6 | 400 |
+| 辅助文字 | Inter, sans-serif | 12px | 1.5 | 400 |
+| 代码/等宽 | JetBrains Mono, monospace | 13px | 1.6 | 400 |
+
+**字体加载：**
+```css
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+```
+
+**使用场景：**
+- **Inter**：所有 UI 文字（Linear 官方同款）
+- **JetBrains Mono**：代码块、Agent 思考过程、工具调用参数、JSON 展示
+
+### 1.5 间距规范
 
 | 类型 | 值 |
 |------|-----|
@@ -57,6 +130,165 @@
 | 元素间距 | 16px |
 | 紧凑间距 | 8px |
 | 最小间距 | 4px |
+
+### 1.6 Linear 风格设计要点
+
+#### 1.6.1 1px 细边框与渐变
+
+在 Linear 风格中，**不使用投影（Shadow）来区分层级**，而是使用 1px 的深灰色边框。
+
+```css
+/* 基础边框 */
+.card {
+  border: 1px solid var(--border-default);
+  background: var(--bg-card);
+}
+
+/* 进阶：边框渐变（金属拉丝质感） */
+.card-gradient-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
+    linear-gradient(180deg, #333333 0%, #111111 100%) border-box;
+}
+
+/* 悬浮状态 */
+.card:hover {
+  border-color: var(--border-active);
+}
+```
+
+#### 1.6.2 克制的动效
+
+Linear 的动效非常"克制"，不是浮夸的弹跳，而是极短时间内的平滑位移。
+
+```css
+/* 推荐的过渡时间 */
+--transition-fast: 150ms ease;
+--transition-normal: 200ms ease;
+--transition-slow: 300ms ease;
+
+/* 悬浮效果示例 */
+.button {
+  transition: all var(--transition-fast);
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+```
+
+#### 1.6.3 图标规范
+
+使用 **Lucide** 图标库，线条极细，设置 `stroke-width: 1.5px`，与 Linear 的极简风格完美契合。
+
+```vue
+<template>
+  <Settings :size="20" :stroke-width="1.5" />
+</template>
+```
+
+### 1.7 UI 组件库技术栈
+
+为了在 Vue 中完美复刻 Linear 的精密感，采用 **"1个基础库 + 1个科技感库 + 1个动画库"** 的组合。
+
+#### 1.7.1 基础 UI：shadcn-vue
+
+- **地址：** https://www.shadcn-vue.com/
+- **特点：** Vue 社区公认的复刻 Linear 风格最像的项目。不是打包好的 npm 包，而是"代码块"，可完全控制 CSS。
+- **必用组件：**
+  - `Button`：无阴影扁平化
+  - `Input`：细边框
+  - `Sheet`：侧边栏
+  - `Command`：K 面板（全局搜索）
+  - `Dialog`：弹窗
+  - `Select`：下拉选择
+
+#### 1.7.2 科技感增强：Inspira UI
+
+- **地址：** https://inspira-ui.com/
+- **特点：** Vue 版本的 "Aceternity UI"，提供极具科技感的复杂组件。
+- **推荐组件：**
+  - **Border Beam（流光边框）：** AI 聊天框边缘流动的光效
+  - **Meteors（流星）：** 背景中划过的极细光条
+  - **Tracing Beam（追踪光束）：** 随页面滚动移动的侧边光线
+  - **Glow Card（发光卡片）：** 鼠标移入时卡片背后的微弱光晕
+  - **Sparkles（闪烁）：** AI 生成内容时的闪烁效果
+
+#### 1.7.3 动画引擎：Motion One for Vue
+
+- **地址：** https://motion.dev/
+- **特点：** 比 Vue 原生 `<Transition>` 更适合处理复杂的交互动画
+- **使用场景：**
+  - 消息流式输出的打字机效果
+  - 思考过程的展开/收起动画
+  - 工具调用卡片的入场动画
+  - 列表项的交错动画（Stagger）
+
+#### 1.7.4 图标库：Lucide Vue Next
+
+- **地址：** https://lucide.dev/guide/packages/lucide-vue-next
+- **配置：** 统一使用 `stroke-width: 1.5px`
+- **示例：**
+```vue
+<script setup>
+import { Settings, MessageSquare, Bot, Sparkles } from 'lucide-vue-next'
+</script>
+
+<template>
+  <Settings :size="20" :stroke-width="1.5" class="text-muted" />
+</template>
+```
+
+### 1.8 CSS 变量定义
+
+```css
+:root {
+  /* 背景色 */
+  --bg-background: #030303;
+  --bg-card: #09090B;
+  --bg-secondary: #0C0C0E;
+  --bg-elevated: #18181B;
+
+  /* 边框色 */
+  --border-default: #27272A;
+  --border-active: #3F3F46;
+  --border-accent: #6366F1;
+
+  /* 功能色 */
+  --color-accent: #6366F1;
+  --color-accent-hover: #818CF8;
+  --color-success: #22C55E;
+  --color-warning: #EAB308;
+  --color-destructive: #F43F5E;
+  --color-info: #3B82F6;
+
+  /* 文字色 */
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-muted: #71717A;
+  --text-disabled: #52525B;
+
+  /* 渐变 */
+  --gradient-ai-thinking: linear-gradient(135deg, #6366F1 0%, #A855F7 100%);
+  --gradient-border: linear-gradient(180deg, #333333 0%, #111111 100%);
+
+  /* 过渡 */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* 字体 */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+```
 
 ---
 
@@ -205,12 +437,12 @@ MessageList
 
 | 组件 | 说明 | 样式 |
 |------|------|------|
-| UserMessage | 用户发送的消息 | 右对齐，蓝色背景 |
-| AssistantMessage | Agent 的回复 | 左对齐，白色背景 |
-| ThinkingBlock | 思考过程展示 | 可折叠，灰色边框 |
-| ToolCallBlock | 工具调用详情 | 可折叠，代码块样式 |
+| UserMessage | 用户发送的消息 | 右对齐，`--bg-elevated` 背景，细边框 |
+| AssistantMessage | Agent 的回复 | 左对齐，`--bg-card` 背景 |
+| ThinkingBlock | 思考过程展示 | 可折叠，`--border-default` 边框，等宽字体 |
+| ToolCallBlock | 工具调用详情 | 可折叠，代码块样式，流光边框动效 |
 | RetrievalBlock | 知识检索结果 | 可折叠，引用样式 |
-| ErrorMessage | 错误信息 | 红色边框 |
+| ErrorMessage | 错误信息 | `--color-destructive` 边框 |
 
 #### 3.2.3 输入区域 (ChatInput)
 
