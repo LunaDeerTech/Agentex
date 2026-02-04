@@ -1,7 +1,7 @@
 # Agentex AI 开发 Prompt 指南
 
-> **版本**：1.0
-> **更新日期**：2024-01
+> **版本**：1.1
+> **更新日期**：2026-02
 > **用途**：为 AI 辅助开发提供标准化 Prompt 模板
 
 ---
@@ -360,6 +360,101 @@ agentex/
 - VS Code 扩展功能正常
 ```
 
+### 任务 1.5：PostgreSQL 数据库初始化
+
+```markdown
+## 任务：初始化 PostgreSQL 数据库配置
+
+请帮我配置 PostgreSQL 数据库连接和 Alembic 迁移工具。
+
+**要求：**
+1. 配置 SQLAlchemy 2.0 异步引擎
+2. 创建数据库会话管理
+3. 配置 Alembic 用于数据库迁移
+4. 创建基础模型基类（含 UUID 主键、时间戳、软删除）
+5. 配置连接池参数
+
+**数据库配置项：**
+- DATABASE_URL（从环境变量读取）
+- 连接池大小
+- 连接超时时间
+
+**输出：**
+- app/core/database.py（数据库配置）
+- app/models/base.py（模型基类）
+- alembic.ini
+- alembic/env.py
+- alembic/script.py.mako
+
+**验收标准：**
+- 数据库可连接
+- `alembic revision --autogenerate` 可执行
+- `alembic upgrade head` 可执行
+```
+
+### 任务 1.6：Redis 配置
+
+```markdown
+## 任务：配置 Redis 连接
+
+请帮我配置 Redis 连接，用于缓存和会话管理。
+
+**功能：**
+1. Redis 连接配置
+2. 连接池管理
+3. 基础缓存操作封装
+4. 健康检查
+
+**要求：**
+1. 使用 redis-py 异步客户端
+2. 支持连接池
+3. 支持 Redis Sentinel（可选）
+4. 提供 get/set/delete 等基础操作
+
+**配置项：**
+- REDIS_URL（从环境变量读取）
+- 连接池大小
+- 过期时间默认值
+
+**输出：**
+- app/core/redis.py
+
+**验收标准：**
+- Redis 可连接
+- 基础缓存操作可用
+```
+
+### 任务 1.7：CI/CD 基础配置
+
+```markdown
+## 任务：配置 GitHub Actions CI/CD
+
+请帮我配置 GitHub Actions 用于自动化测试和构建。
+
+**CI 流程：**
+1. 代码检查（lint）
+2. 单元测试
+3. 构建检查
+
+**需要的 Workflow：**
+1. ci.yml - 每次 PR 和 push 触发
+2. 后端测试 job
+3. 前端测试 job
+
+**要求：**
+1. 使用 GitHub Actions
+2. 缓存依赖加速构建
+3. 并行运行前后端测试
+4. 测试覆盖率报告
+
+**输出：**
+- .github/workflows/ci.yml
+
+**验收标准：**
+- PR 触发自动测试
+- 测试通过显示绿色标记
+```
+
 ### 任务 2.1：用户/角色/权限表设计
 
 ```markdown
@@ -506,6 +601,198 @@ agentex/
 - src/api/request.ts（更新拦截器）
 ```
 
+### 任务 3.1-3.4：基础框架完善（后端）
+
+```markdown
+## 任务：完善后端基础框架
+
+请帮我完善后端基础框架，包括用户信息 API、API 密钥管理、全局异常处理和日志系统。
+
+**3.1 用户信息 API：**
+- GET /api/v1/users/me - 获取当前用户信息
+- PUT /api/v1/users/me - 更新当前用户信息
+- PUT /api/v1/users/me/password - 修改密码
+
+**3.2 API 密钥管理：**
+- POST /api/v1/users/me/api-keys - 创建 API Key
+- GET /api/v1/users/me/api-keys - 获取 API Key 列表
+- DELETE /api/v1/users/me/api-keys/{key_id} - 删除 API Key
+- API Key 认证支持
+
+**3.3 全局异常处理：**
+- 自定义业务异常类
+- 全局异常处理器
+- 统一错误响应格式：`{ "code": 错误码, "message": "错误信息", "data": null }`
+
+**3.4 日志系统：**
+- 使用 structlog 结构化日志
+- 请求日志中间件
+- 日志级别可配置
+
+**要求：**
+1. 遵循 RESTful 设计
+2. 完整的输入验证
+3. 合理的错误码设计
+
+**输出：**
+- app/api/v1/users.py
+- app/schemas/user.py
+- app/services/user.py
+- app/core/exceptions.py
+- app/core/logging.py
+- app/api/middleware.py
+```
+
+### 任务 3.5-3.7：基础框架完善（前端）
+
+```markdown
+## 任务：实现前端基础布局
+
+请帮我实现前端主布局组件和设置页面。
+
+**3.5 主布局组件：**
+- 左侧边栏（可收起）
+  - Logo
+  - 导航菜单（对话、设置等）
+  - 用户信息（底部）
+- 右侧内容区
+  - 顶部工具栏（可选）
+  - 主内容区
+
+**3.6 设置页布局：**
+- 左侧设置菜单
+  - 个人信息
+  - API 密钥
+  - 模型管理
+  - MCP 管理
+  - 知识库
+  - SKILL
+  - 规则（后续）
+- 右侧设置内容区
+
+**3.7 个人信息页面：**
+- 用户头像
+- 用户名、邮箱展示
+- 编辑个人信息表单
+- 修改密码功能
+
+**UI 要求：**
+1. Linear 极简风格（深色主题）
+2. 1px 边框，无阴影
+3. 使用 Lucide 图标（stroke-width: 1.5px）
+4. 响应式设计
+5. 动画过渡效果（subtle）
+
+**输出：**
+- src/layouts/MainLayout.vue
+- src/layouts/SettingsLayout.vue
+- src/components/layout/Sidebar.vue
+- src/components/layout/SettingsMenu.vue
+- src/views/settings/ProfileView.vue
+- src/views/settings/ApiKeysView.vue
+```
+
+### 任务 4.1-4.3：会话系统（后端）
+
+```markdown
+## 任务：实现会话系统后端
+
+请帮我实现对话会话的后端功能。
+
+**4.1 会话/消息表设计：**
+
+chat_sessions 表：
+- id (UUID, PK)
+- user_id (FK -> users)
+- title
+- agent_type (react, agentic_rag, plan_execute)
+- model_config_id (FK -> model_configs)
+- settings (JSONB) - 温度、系统提示等
+- created_at, updated_at, is_deleted
+
+chat_messages 表：
+- id (UUID, PK)
+- session_id (FK -> chat_sessions)
+- role (user, assistant, system, tool)
+- content
+- metadata (JSONB) - 工具调用、思考过程等
+- created_at
+
+**4.2 会话 CRUD API：**
+- POST /api/v1/sessions - 创建会话
+- GET /api/v1/sessions - 获取会话列表
+- GET /api/v1/sessions/{id} - 获取会话详情
+- PUT /api/v1/sessions/{id} - 更新会话
+- DELETE /api/v1/sessions/{id} - 删除会话
+
+**4.3 消息 API：**
+- POST /api/v1/sessions/{id}/messages - 添加消息
+- GET /api/v1/sessions/{id}/messages - 获取消息历史
+
+**要求：**
+1. 分页支持
+2. 按用户隔离数据
+3. 软删除
+
+**输出：**
+- app/models/session.py
+- app/models/message.py
+- app/schemas/session.py
+- app/schemas/message.py
+- app/api/v1/sessions.py
+- app/services/session.py
+- alembic/versions/xxx_create_session_tables.py
+```
+
+### 任务 4.4-4.6：会话系统（前端）
+
+```markdown
+## 任务：实现对话页面前端
+
+请帮我实现对话页面的基础结构。
+
+**4.4 对话页面基础结构：**
+- 左侧：会话列表面板
+- 中间：消息展示区域
+- 底部：输入区域
+
+**4.5 会话列表组件：**
+- 新建会话按钮
+- 会话列表（按时间倒序）
+  - 会话标题
+  - 最后消息时间
+  - 会话类型标签
+- 会话右键菜单（重命名、删除）
+- 当前会话高亮
+- 搜索过滤（可选）
+
+**4.6 消息列表组件：**
+- 消息气泡样式
+  - 用户消息（右侧）
+  - AI 消息（左侧）
+  - 系统消息（居中）
+- Markdown 渲染支持
+- 代码高亮
+- 复制消息按钮
+- 消息时间戳
+
+**UI 要求：**
+1. Linear 极简风格
+2. 流畅的滚动体验
+3. 自动滚动到最新消息
+4. 空状态提示
+
+**输出：**
+- src/views/ChatView.vue
+- src/components/chat/SessionList.vue
+- src/components/chat/SessionItem.vue
+- src/components/chat/MessageList.vue
+- src/components/chat/MessageItem.vue
+- src/components/chat/ChatInput.vue
+- src/stores/session.ts
+- src/api/session.ts
+```
+
 ---
 
 ## 4. 阶段二：核心功能 Prompts
@@ -615,6 +902,342 @@ class BaseAgent(ABC):
 - app/api/v1/agent.py
 - src/composables/useAgentChat.ts
 - src/components/chat/MessageStream.vue
+```
+
+### 任务 7.1-7.6：Agent 服务完善
+
+```markdown
+## 任务：完善 Agent 服务
+
+请帮我实现更多 Agent 类型和前端展示组件。
+
+**7.1 AgenticRAG Agent：**
+- 继承 BaseAgent
+- 整合知识库检索
+- 流程：接收问题 → 检索相关文档 → 基于检索结果回答
+- 支持多知识库
+
+**7.2 PlanAndExecute Agent：**
+- 任务规划阶段：将复杂任务拆解为子任务
+- 执行阶段：按顺序执行子任务
+- 重规划：根据执行结果调整计划
+- 支持任务依赖
+
+**7.3 思考过程展示组件：**
+- 可折叠的思考过程区域
+- 步骤列表展示
+- 每个步骤：
+  - 步骤编号
+  - 思考内容
+  - 执行时间
+- 实时更新动画
+
+**7.4 工具调用展示组件：**
+- 工具名称和图标
+- 输入参数（可折叠 JSON）
+- 执行状态（loading/success/error）
+- 输出结果
+- 执行耗时
+
+**7.5 Agent 选择器组件：**
+- 下拉选择 Agent 类型
+- Agent 类型说明（tooltip）
+- 当前会话 Agent 类型显示
+
+**7.6 对话输入组件完善：**
+- 多行输入框（自动增高）
+- 发送按钮
+- 停止生成按钮（流式输出时显示）
+- 重新生成按钮
+- 快捷键支持（Enter 发送，Shift+Enter 换行）
+- 附件上传（可选）
+
+**要求：**
+1. 组件解耦，可复用
+2. 平滑的动画效果
+3. 良好的加载状态反馈
+
+**输出：**
+- app/agents/agentic_rag.py
+- app/agents/plan_execute.py
+- src/components/chat/ThinkingProcess.vue
+- src/components/chat/ToolCallDisplay.vue
+- src/components/chat/AgentSelector.vue
+- src/components/chat/ChatInput.vue（更新）
+```
+
+### 任务 8.1：MCP 连接表设计
+
+```markdown
+## 任务：设计 MCP 连接数据库表
+
+请帮我设计 MCP 连接的数据库表。
+
+**mcp_connections 表：**
+- id (UUID, PK)
+- user_id (FK -> users)
+- name - 连接名称
+- description - 描述
+- transport_type - 传输类型（stdio, sse, websocket）
+- config (JSONB) - 连接配置
+  - stdio: { command, args, env }
+  - sse: { url, headers }
+  - websocket: { url, auth_token }
+- status - 连接状态（connected, disconnected, error）
+- last_connected_at
+- created_at, updated_at, is_deleted
+
+**mcp_tools_cache 表：**
+- id (UUID, PK)
+- connection_id (FK -> mcp_connections)
+- tool_name
+- tool_description
+- input_schema (JSONB)
+- cached_at
+
+**要求：**
+1. 支持多种传输类型
+2. 配置信息加密存储（敏感信息）
+3. 工具缓存减少重复请求
+
+**输出：**
+- app/models/mcp.py
+- alembic/versions/xxx_create_mcp_tables.py
+```
+
+### 任务 8.4-8.6：MCP 管理功能
+
+```markdown
+## 任务：实现 MCP 连接管理功能
+
+请帮我实现 MCP 连接的管理 API 和前端页面。
+
+**8.4 MCP 连接管理 API：**
+- POST /api/v1/mcp/connections - 创建连接
+- GET /api/v1/mcp/connections - 获取连接列表
+- GET /api/v1/mcp/connections/{id} - 获取连接详情
+- PUT /api/v1/mcp/connections/{id} - 更新连接
+- DELETE /api/v1/mcp/connections/{id} - 删除连接
+- POST /api/v1/mcp/connections/{id}/test - 测试连接
+- GET /api/v1/mcp/connections/{id}/tools - 获取工具列表
+
+**8.5 MCP 管理页面：**
+- 连接列表
+  - 连接名称、类型、状态
+  - 快捷操作（测试、编辑、删除）
+- 添加/编辑连接对话框
+  - 连接类型选择
+  - 根据类型显示不同配置项
+  - 测试连接按钮
+- 连接详情
+  - 基本信息
+  - 可用工具列表
+
+**8.6 工具选择器组件：**
+- 树形结构展示（按连接分组）
+- 工具搜索
+- 勾选启用/禁用
+- 工具详情弹窗
+
+**输出：**
+- app/api/v1/mcp.py
+- app/schemas/mcp.py
+- app/services/mcp.py
+- src/views/settings/McpView.vue
+- src/components/mcp/ConnectionList.vue
+- src/components/mcp/ConnectionForm.vue
+- src/components/mcp/ToolSelector.vue
+- src/api/mcp.ts
+- src/stores/mcp.ts
+```
+
+### 任务 9.1-9.2：SKILL 表设计和 API
+
+```markdown
+## 任务：实现 SKILL 数据管理
+
+请帮我实现 SKILL 的数据库表设计和 CRUD API。
+
+**9.1 SKILL 表设计：**
+
+skills 表：
+- id (UUID, PK)
+- user_id (FK -> users)
+- name - SKILL 名称
+- description - 描述
+- version - 版本号
+- definition (TEXT) - YAML 定义内容
+- input_schema (JSONB) - 输入参数 schema
+- output_schema (JSONB) - 输出参数 schema
+- is_public - 是否公开
+- status - 状态（draft, active, deprecated）
+- created_at, updated_at, is_deleted
+
+skill_executions 表：
+- id (UUID, PK)
+- skill_id (FK -> skills)
+- user_id (FK -> users)
+- session_id (FK -> chat_sessions, nullable)
+- inputs (JSONB)
+- outputs (JSONB)
+- status - 执行状态
+- started_at, finished_at
+- error_message
+
+**9.2 SKILL CRUD API：**
+- POST /api/v1/skills - 创建 SKILL
+- GET /api/v1/skills - 获取 SKILL 列表
+- GET /api/v1/skills/{id} - 获取 SKILL 详情
+- PUT /api/v1/skills/{id} - 更新 SKILL
+- DELETE /api/v1/skills/{id} - 删除 SKILL
+- POST /api/v1/skills/{id}/validate - 验证 SKILL 定义
+- POST /api/v1/skills/{id}/execute - 执行 SKILL
+
+**输出：**
+- app/models/skill.py
+- app/schemas/skill.py
+- app/api/v1/skills.py
+- app/services/skill.py
+- alembic/versions/xxx_create_skill_tables.py
+```
+
+### 任务 9.5-9.7：SKILL 前端
+
+```markdown
+## 任务：实现 SKILL 管理前端
+
+请帮我实现 SKILL 管理的前端页面和组件。
+
+**9.5 SKILL 管理页面：**
+- SKILL 列表
+  - 名称、版本、状态、描述
+  - 快捷操作（编辑、执行、删除）
+- 新建 SKILL 按钮
+- 状态过滤（全部、草稿、激活、废弃）
+- 搜索
+
+**9.6 SKILL 编辑器组件：**
+- 左侧：YAML 编辑器
+  - 语法高亮（使用 Monaco Editor 或 CodeMirror）
+  - 自动补全
+  - 错误提示
+- 右侧：实时预览
+  - 可视化步骤流程图
+  - 输入输出 schema 展示
+- 底部工具栏
+  - 验证按钮
+  - 保存按钮
+  - 测试运行按钮
+
+**9.7 SKILL 选择器组件：**
+- 下拉列表选择
+- 显示 SKILL 名称和描述
+- 支持搜索
+- 可多选（可选）
+
+**输出：**
+- src/views/settings/SkillView.vue
+- src/views/settings/SkillEditorView.vue
+- src/components/skill/SkillList.vue
+- src/components/skill/SkillEditor.vue
+- src/components/skill/SkillPreview.vue
+- src/components/skill/SkillSelector.vue
+- src/api/skill.ts
+- src/stores/skill.ts
+```
+
+### 任务 10.1：知识库表设计
+
+```markdown
+## 任务：设计知识库数据库表
+
+请帮我设计 RAG 知识库的数据库表。
+
+**knowledge_bases 表：**
+- id (UUID, PK)
+- user_id (FK -> users)
+- name - 知识库名称
+- description - 描述
+- embedding_model - 使用的 embedding 模型
+- chunk_size - 分块大小
+- chunk_overlap - 分块重叠
+- collection_name - Milvus collection 名称
+- document_count - 文档数量
+- status - 状态（creating, ready, error）
+- created_at, updated_at, is_deleted
+
+**knowledge_documents 表：**
+- id (UUID, PK)
+- knowledge_base_id (FK -> knowledge_bases)
+- filename - 文件名
+- file_type - 文件类型（pdf, md, txt, html）
+- file_size - 文件大小
+- file_path - 存储路径
+- chunk_count - 分块数量
+- status - 处理状态（pending, processing, completed, failed）
+- error_message
+- processed_at
+- created_at, updated_at, is_deleted
+
+**要求：**
+1. 支持多种文档类型
+2. 记录处理状态
+3. 支持增量更新
+
+**输出：**
+- app/models/knowledge.py
+- alembic/versions/xxx_create_knowledge_tables.py
+```
+
+### 任务 10.7-10.9：知识库前端
+
+```markdown
+## 任务：实现知识库管理前端
+
+请帮我实现知识库管理的前端页面和组件。
+
+**10.7 知识库管理页面：**
+- 知识库列表
+  - 名称、文档数、状态
+  - 快捷操作（查看、编辑、删除）
+- 新建知识库按钮
+- 知识库详情页
+  - 基本信息
+  - 文档列表
+  - 上传文档
+  - 测试检索
+
+**文档管理：**
+- 文档列表
+  - 文件名、类型、大小、状态
+  - 处理进度条
+  - 删除按钮
+- 文件上传区域
+  - 拖拽上传
+  - 多文件支持
+  - 上传进度
+
+**10.8 知识库选择器组件：**
+- 下拉多选
+- 显示知识库名称和文档数
+- 搜索支持
+
+**10.9 检索结果展示组件：**
+- 检索来源标签
+- 来源文档链接
+- 相关度分数
+- 原文片段预览（可展开）
+
+**输出：**
+- src/views/settings/KnowledgeView.vue
+- src/views/settings/KnowledgeDetailView.vue
+- src/components/knowledge/KnowledgeList.vue
+- src/components/knowledge/DocumentList.vue
+- src/components/knowledge/FileUploader.vue
+- src/components/knowledge/KnowledgeSelector.vue
+- src/components/knowledge/RetrievalResult.vue
+- src/api/knowledge.ts
+- src/stores/knowledge.ts
 ```
 
 ### 任务 8.2-8.3：MCP 客户端实现
@@ -802,6 +1425,49 @@ class VectorStore(ABC):
 
 ## 5. 阶段三：扩展功能 Prompts
 
+### 任务 11.1：规则表设计
+
+```markdown
+## 任务：设计规则引擎数据库表
+
+请帮我设计规则引擎的数据库表。
+
+**rules 表：**
+- id (UUID, PK)
+- user_id (FK -> users)
+- name - 规则名称
+- description - 描述
+- trigger_type - 触发类型（event, schedule, manual）
+- trigger_config (JSONB) - 触发配置
+  - event: { source, event_type, filter }
+  - schedule: { cron_expression }
+  - manual: {}
+- conditions (JSONB) - 条件表达式树
+- actions (JSONB) - 动作列表
+- priority - 优先级
+- is_active - 是否启用
+- created_at, updated_at, is_deleted
+
+**rule_executions 表：**
+- id (UUID, PK)
+- rule_id (FK -> rules)
+- trigger_event (JSONB) - 触发事件
+- matched_conditions - 匹配结果
+- executed_actions - 执行的动作
+- status - 执行状态
+- started_at, finished_at
+- error_message
+
+**要求：**
+1. 支持复杂条件表达式
+2. 记录完整执行日志
+3. 支持规则优先级
+
+**输出：**
+- app/models/rule.py
+- alembic/versions/xxx_create_rule_tables.py
+```
+
 ### 任务 11.2-11.4：规则引擎核心
 
 ```markdown
@@ -855,6 +1521,114 @@ class Rule:
 - app/rule_engine/trigger.py
 ```
 
+### 任务 11.5-11.6：规则 API 和事件订阅
+
+```markdown
+## 任务：实现规则管理 API 和事件订阅
+
+请帮我实现规则的管理 API 和 WS-MCP 事件订阅功能。
+
+**11.5 规则 CRUD API：**
+- POST /api/v1/rules - 创建规则
+- GET /api/v1/rules - 获取规则列表
+- GET /api/v1/rules/{id} - 获取规则详情
+- PUT /api/v1/rules/{id} - 更新规则
+- DELETE /api/v1/rules/{id} - 删除规则
+- POST /api/v1/rules/{id}/toggle - 启用/禁用规则
+- POST /api/v1/rules/{id}/test - 测试规则
+- GET /api/v1/rules/{id}/executions - 获取执行历史
+
+**11.6 WS-MCP 事件订阅：**
+- 订阅 WS-MCP 服务器事件
+- 事件匹配规则触发器
+- 事件过滤
+- 批量事件处理
+
+**要求：**
+1. 规则变更实时生效
+2. 事件去重处理
+3. 错误重试机制
+
+**输出：**
+- app/api/v1/rules.py
+- app/schemas/rule.py
+- app/services/rule.py
+- app/rule_engine/event_handler.py
+```
+
+### 任务 12.1-12.6：规则引擎前端
+
+```markdown
+## 任务：实现规则引擎前端
+
+请帮我实现规则引擎的完整前端界面。
+
+**12.1 规则管理页面：**
+- 规则列表
+  - 名称、触发类型、状态、优先级
+  - 快捷操作（启用/禁用、编辑、删除）
+- 新建规则按钮
+- 状态过滤、搜索
+
+**12.2 规则编辑器组件：**
+- 基本信息表单
+  - 规则名称、描述
+  - 优先级
+- 触发器配置
+- 条件配置
+- 动作配置
+- 保存/取消按钮
+
+**12.3 条件构建器组件：**
+- 可视化条件构建
+- 支持嵌套条件组（AND/OR）
+- 条件类型选择
+  - 比较条件
+  - 字符串条件
+  - 存在性检查
+- 变量选择器
+- 值输入
+
+**12.4 动作配置器组件：**
+- 动作类型选择
+  - 发送消息
+  - 调用工具
+  - 执行 SKILL
+  - 触发 Agent
+  - Webhook
+- 动作参数配置
+- 动作排序（拖拽）
+- 并行/串行选择
+
+**12.5 规则测试功能：**
+- 模拟触发事件
+- 条件匹配预览
+- 动作模拟执行
+- 执行结果展示
+
+**12.6 规则日志展示：**
+- 执行历史列表
+- 执行详情
+  - 触发事件
+  - 条件匹配结果
+  - 动作执行结果
+  - 错误信息
+- 时间范围过滤
+
+**输出：**
+- src/views/settings/RulesView.vue
+- src/views/settings/RuleEditorView.vue
+- src/components/rule/RuleList.vue
+- src/components/rule/RuleEditor.vue
+- src/components/rule/TriggerConfig.vue
+- src/components/rule/ConditionBuilder.vue
+- src/components/rule/ActionConfig.vue
+- src/components/rule/RuleTestPanel.vue
+- src/components/rule/RuleLogList.vue
+- src/api/rule.ts
+- src/stores/rule.ts
+```
+
 ### 任务 13.1-13.2：细粒度权限系统
 
 ```markdown
@@ -893,6 +1667,126 @@ class Rule:
 - app/core/permissions.py
 - app/api/deps.py（更新）
 - app/services/permission.py
+```
+
+### 任务 13.3-13.7：权限管理功能
+
+```markdown
+## 任务：实现用户和角色管理功能
+
+请帮我实现管理员的用户和角色管理功能。
+
+**13.3 用户管理 API：**
+- GET /api/v1/admin/users - 获取用户列表（分页）
+- GET /api/v1/admin/users/{id} - 获取用户详情
+- PUT /api/v1/admin/users/{id} - 更新用户信息
+- PUT /api/v1/admin/users/{id}/roles - 更新用户角色
+- POST /api/v1/admin/users/{id}/toggle - 启用/禁用用户
+- DELETE /api/v1/admin/users/{id} - 删除用户
+
+**13.4 角色管理 API：**
+- POST /api/v1/admin/roles - 创建角色
+- GET /api/v1/admin/roles - 获取角色列表
+- GET /api/v1/admin/roles/{id} - 获取角色详情
+- PUT /api/v1/admin/roles/{id} - 更新角色
+- PUT /api/v1/admin/roles/{id}/permissions - 更新角色权限
+- DELETE /api/v1/admin/roles/{id} - 删除角色
+
+**13.5 用户管理页面：**
+- 用户列表
+  - 用户名、邮箱、角色、状态
+  - 快捷操作
+- 用户详情/编辑对话框
+- 角色分配
+
+**13.6 权限配置组件：**
+- 权限树形结构展示
+- 勾选授权
+- 按模块分组
+- 全选/取消全选
+
+**13.7 侧边栏权限过滤：**
+- 根据用户权限动态显示菜单项
+- 无权限的菜单项隐藏
+- 权限变更实时生效
+
+**输出：**
+- app/api/v1/admin.py
+- app/schemas/admin.py
+- app/services/admin.py
+- src/views/settings/UsersView.vue
+- src/views/settings/RolesView.vue
+- src/components/admin/UserList.vue
+- src/components/admin/UserForm.vue
+- src/components/admin/RoleList.vue
+- src/components/admin/PermissionTree.vue
+- src/components/layout/Sidebar.vue（更新）
+- src/api/admin.ts
+```
+
+### 任务 14.1-14.7：优化与完善
+
+```markdown
+## 任务：系统优化与完善
+
+请帮我完成系统的优化和完善工作。
+
+**14.1 Reflexion Agent 实现：**
+- 继承 BaseAgent
+- 实现自我反思循环
+  - 执行 → 评估结果 → 反思 → 改进 → 重试
+- 最大重试次数限制
+- 反思历史记录
+
+**14.2 系统设置 API：**
+- GET /api/v1/settings - 获取系统设置
+- PUT /api/v1/settings - 更新系统设置
+- 设置项：
+  - 默认模型
+  - 默认 Agent 类型
+  - 会话保留天数
+  - 其他全局配置
+
+**14.3 操作日志实现：**
+- 记录关键操作（创建、更新、删除）
+- 操作人、操作时间、操作类型
+- 操作详情（变更内容）
+- 查询 API
+
+**14.4 系统设置页面：**
+- 通用设置
+- 默认配置
+- 系统信息展示
+
+**14.5 全局加载状态优化：**
+- 顶部加载进度条
+- 骨架屏（Skeleton）
+- 加载状态管理
+
+**14.6 错误处理优化：**
+- 统一 Toast 提示组件
+- 错误边界组件
+- 网络错误重试
+- 友好的错误信息
+
+**14.7 响应式布局完善：**
+- 移动端适配
+- 侧边栏响应式收起
+- 表格响应式
+- 触摸手势支持
+
+**输出：**
+- app/agents/reflexion.py
+- app/api/v1/settings.py
+- app/api/v1/audit.py
+- app/models/audit.py
+- app/services/audit.py
+- src/views/settings/SystemView.vue
+- src/components/common/LoadingBar.vue
+- src/components/common/Skeleton.vue
+- src/components/common/Toast.vue
+- src/components/common/ErrorBoundary.vue
+- 布局组件响应式更新
 ```
 
 ---
@@ -949,6 +1843,52 @@ class TestAuthService:
 - tests/conftest.py（fixtures）
 ```
 
+### 任务 15.2-15.3：集成测试
+
+```markdown
+## 任务：编写集成测试
+
+请帮我编写后端 API 集成测试和前端组件测试。
+
+**15.2 后端集成测试：**
+测试完整的 API 流程，包括数据库交互。
+
+测试场景：
+1. 用户注册 → 登录 → 获取信息 → 更新信息
+2. 创建会话 → 发送消息 → 获取历史
+3. 创建模型配置 → 测试调用
+4. 创建知识库 → 上传文档 → 检索
+5. 创建 SKILL → 验证 → 执行
+
+要求：
+- 使用 pytest + httpx
+- 使用测试数据库
+- 事务回滚保证测试隔离
+- 测试数据 fixtures
+
+**15.3 前端组件测试：**
+测试核心 Vue 组件。
+
+测试范围：
+1. 表单组件（输入验证、提交）
+2. 列表组件（渲染、分页、筛选）
+3. 对话组件（消息展示、发送）
+4. 状态管理（Pinia stores）
+
+要求：
+- 使用 Vitest + Vue Test Utils
+- 组件快照测试
+- 用户交互测试
+
+**输出：**
+- tests/integration/test_auth_flow.py
+- tests/integration/test_session_flow.py
+- tests/integration/test_knowledge_flow.py
+- tests/integration/conftest.py
+- frontend/src/components/__tests__/
+- frontend/vitest.config.ts
+```
+
 ### 任务 15.4：E2E 测试
 
 ```markdown
@@ -1003,6 +1943,103 @@ test.describe('对话功能', () => {
 - frontend/playwright.config.ts
 ```
 
+### 任务 15.5-15.6：压力测试
+
+```markdown
+## 任务：编写压力测试
+
+请帮我编写 API 和 SSE 连接的压力测试。
+
+**15.5 API 压力测试：**
+使用 Locust 或 k6 进行 API 压力测试。
+
+测试场景：
+1. 登录接口
+2. 会话列表接口
+3. 消息历史接口
+4. 知识库检索接口
+
+测试指标：
+- 并发用户数
+- 请求吞吐量 (RPS)
+- 响应时间 (P50, P95, P99)
+- 错误率
+
+目标：
+- 100 并发用户
+- P95 < 200ms
+- 错误率 < 0.1%
+
+**15.6 AG-UI SSE 压力测试：**
+测试 SSE 长连接的并发能力。
+
+测试场景：
+1. 并发建立 SSE 连接
+2. 同时进行流式输出
+3. 连接保持稳定性
+
+测试指标：
+- 最大并发连接数
+- 消息延迟
+- 连接断开率
+
+目标：
+- 支持 1000 并发连接
+- 消息延迟 < 100ms
+
+**输出：**
+- tests/load/locustfile.py 或 tests/load/k6_script.js
+- tests/load/sse_stress_test.py
+- tests/load/README.md（运行说明）
+```
+
+### 任务 16.1：安全审计
+
+```markdown
+## 任务：安全审计和修复
+
+请帮我进行安全审计并修复发现的问题。
+
+**审计清单：**
+
+1. 认证安全
+   - JWT 配置（密钥强度、过期时间）
+   - 密码策略（最小长度、复杂度）
+   - 暴力破解防护（登录限流）
+   - Token 刷新机制
+
+2. 授权安全
+   - 权限检查覆盖
+   - 越权访问测试
+   - 资源隔离验证
+
+3. 输入验证
+   - SQL 注入防护
+   - XSS 防护
+   - 参数校验完整性
+   - 文件上传安全
+
+4. 敏感数据
+   - API Key 加密存储
+   - 日志脱敏
+   - 错误信息泄露
+
+5. API 安全
+   - CORS 配置
+   - 请求限流
+   - 安全响应头
+
+**要求：**
+1. 输出安全检查报告
+2. 提供修复代码
+3. 添加安全测试用例
+
+**输出：**
+- docs/SECURITY_AUDIT.md
+- 修复补丁
+- tests/security/
+```
+
 ### 任务 16.2-16.3：性能优化
 
 ```markdown
@@ -1036,6 +2073,64 @@ test.describe('对话功能', () => {
 **输出：**
 - 性能分析报告
 - 优化后的代码
+```
+
+### 任务 16.4-16.6：Bug 修复与文档完善
+
+```markdown
+## 任务：Bug 修复、代码重构与文档完善
+
+请帮我完成测试阶段发现的 Bug 修复、代码质量改进和文档完善。
+
+**16.4 Bug 修复：**
+根据测试报告修复所有 P0/P1 级别 Bug。
+
+流程：
+1. 分析 Bug 报告
+2. 定位问题根因
+3. 编写修复代码
+4. 添加回归测试
+5. 验证修复
+
+**16.5 代码重构：**
+基于代码质量分析进行重构。
+
+重构方向：
+1. 消除代码重复
+2. 简化复杂函数
+3. 改善命名
+4. 优化模块结构
+5. 提升类型覆盖
+
+工具：
+- pylint / ruff（Python）
+- ESLint（TypeScript）
+- SonarQube（可选）
+
+**16.6 文档完善：**
+
+API 文档：
+- OpenAPI 文档补充描述
+- 请求/响应示例
+- 错误码说明
+
+开发文档：
+- README.md 更新
+- 架构说明文档
+- 本地开发指南
+- 部署指南
+
+用户文档：
+- 功能使用说明
+- 常见问题 FAQ
+
+**输出：**
+- Bug 修复 PR
+- 重构 PR
+- docs/API.md
+- docs/DEVELOPMENT.md
+- docs/DEPLOYMENT.md
+- docs/USER_GUIDE.md
 ```
 
 ---
@@ -1121,6 +2216,81 @@ test.describe('对话功能', () => {
 - grafana/dashboards/agentex.json
 - grafana/alerting/rules.yml
 - 后端 metrics 端点代码
+```
+
+### 任务 17.8-17.10：备份与上线验证
+
+```markdown
+## 任务：备份策略配置与上线验证
+
+请帮我配置数据备份策略并准备上线验证清单。
+
+**17.8 备份策略配置：**
+
+数据库备份：
+- PostgreSQL 定时备份脚本
+- 备份频率：每日全量 + 每小时增量
+- 备份保留策略：7 天全量，24 小时增量
+- 备份存储位置配置
+- 备份加密
+
+Milvus 备份：
+- Collection 备份
+- 定时备份任务
+
+文件备份：
+- 上传文件备份
+- 配置文件备份
+
+恢复验证：
+- 恢复流程文档
+- 定期恢复测试
+
+**17.9 上线验证清单：**
+
+功能验证：
+- [ ] 用户注册/登录
+- [ ] 会话创建和对话
+- [ ] 模型调用
+- [ ] MCP 连接
+- [ ] 知识库检索
+- [ ] SKILL 执行
+- [ ] 规则触发
+
+性能验证：
+- [ ] API 响应时间
+- [ ] SSE 流式输出延迟
+- [ ] 并发用户测试
+
+安全验证：
+- [ ] SSL 证书有效
+- [ ] 安全头配置
+- [ ] 权限控制生效
+
+监控验证：
+- [ ] 指标采集正常
+- [ ] 告警规则有效
+- [ ] 日志收集正常
+
+**17.10 用户文档发布：**
+
+文档站点：
+- 使用 VitePress 或 Docusaurus
+- 部署到 GitHub Pages 或 Vercel
+
+文档内容：
+- 快速开始
+- 功能介绍
+- API 参考
+- 常见问题
+- 更新日志
+
+**输出：**
+- scripts/backup.sh
+- scripts/restore.sh
+- docs/BACKUP.md
+- docs/RELEASE_CHECKLIST.md
+- docs-site/（文档站点源码）
 ```
 
 ---

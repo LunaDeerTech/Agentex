@@ -1,17 +1,14 @@
 <script setup lang="ts">
   import { ref } from 'vue'
-  import { Send, Menu, Plus, Settings } from 'lucide-vue-next'
+  import { Send, Menu, Plus, Settings, Bot, Paperclip, ChevronDown } from 'lucide-vue-next'
   import { useSessionStore, useAppStore } from '@/stores'
 
   const sessionStore = useSessionStore()
   const appStore = useAppStore()
-
   const inputMessage = ref('')
 
   function handleSend() {
     if (!inputMessage.value.trim() || sessionStore.isStreaming) return
-
-    // TODO: Implement actual message sending
     console.log('Sending message:', inputMessage.value)
     inputMessage.value = ''
   }
@@ -25,257 +22,207 @@
 </script>
 
 <template>
-  <div class="chat-view">
+  <div class="flex h-screen bg-background text-foreground font-sans overflow-hidden">
     <!-- Sidebar -->
-    <aside class="sidebar" :class="{ collapsed: appStore.sidebarCollapsed }">
-      <div class="sidebar-header">
-        <button class="icon-btn" @click="appStore.toggleSidebar">
-          <Menu class="w-5 h-5" />
-        </button>
-        <button class="icon-btn">
-          <Plus class="w-5 h-5" />
+    <aside
+      class="flex flex-col border-r border-border bg-secondary transition-all duration-300"
+      :class="appStore.sidebarCollapsed ? 'w-[60px]' : 'w-[260px]'"
+    >
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 h-14 shrink-0 border-b border-border/40">
+        <div
+          v-if="!appStore.sidebarCollapsed"
+          class="font-semibold text-base tracking-tight truncate ml-1"
+        >
+          Agentex
+        </div>
+        <button
+          class="p-2 rounded-md hover:bg-white/5 text-muted-foreground hover:text-foreground transition-colors ml-auto"
+          @click="appStore.toggleSidebar"
+        >
+          <Menu class="w-5 h-5" :stroke-width="1.5" />
         </button>
       </div>
 
-      <div class="sidebar-content">
-        <div class="empty-sessions">
-          <p>No conversations yet</p>
-          <p class="text-muted">Start a new chat to begin</p>
+      <!-- New Chat Button -->
+      <div class="px-3 py-3">
+        <button
+          class="flex items-center gap-2 w-full p-2 text-sm rounded-md border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-all duration-200 group text-left shadow-sm"
+          :class="{ 'justify-center': appStore.sidebarCollapsed }"
+        >
+          <Plus
+            class="w-4 h-4 text-muted-foreground group-hover:text-foreground"
+            :stroke-width="1.5"
+          />
+          <span v-if="!appStore.sidebarCollapsed" class="text-sm font-medium"
+            >New Conversation</span
+          >
+        </button>
+      </div>
+
+      <!-- Session List (Placeholder) -->
+      <div class="flex-1 overflow-y-auto px-2 space-y-1">
+        <div
+          v-if="!appStore.sidebarCollapsed"
+          class="text-xs font-medium text-muted-foreground px-3 py-2 mt-2"
+        >
+          Recent
+        </div>
+        <!-- Example items -->
+        <!-- <div class="px-3 py-2 text-sm rounded-md hover:bg-accent/50 cursor-pointer truncate text-muted-foreground hover:text-foreground transition-colors">
+          Project Planning
+        </div> -->
+        <div
+          class="flex flex-col items-center justify-center py-10 text-muted-foreground text-sm text-center px-4"
+          v-if="!appStore.sidebarCollapsed"
+        >
+          <span class="opacity-50 text-xs">No conversations yet</span>
         </div>
       </div>
 
-      <div class="sidebar-footer">
-        <button class="icon-btn">
-          <Settings class="w-5 h-5" />
-        </button>
+      <!-- User Footer -->
+      <div class="p-2 m-2 border-t border-border pt-4">
+        <div
+          class="flex items-center gap-3 p-2 rounded-md hover:bg-accent/50 cursor-pointer transition-colors group"
+        >
+          <div
+            class="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 font-mono text-xs ring-1 ring-transparent group-hover:ring-border transition-all"
+          >
+            U
+          </div>
+          <div v-if="!appStore.sidebarCollapsed" class="flex-1 min-w-0">
+            <div class="text-xs font-medium truncate group-hover:text-accent-foreground">User</div>
+            <div class="text-[10px] text-muted-foreground truncate">user@example.com</div>
+          </div>
+          <router-link
+            to="/settings"
+            v-if="!appStore.sidebarCollapsed"
+            class="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-background"
+          >
+            <Settings class="w-4 h-4" :stroke-width="1.5" />
+          </router-link>
+        </div>
       </div>
     </aside>
 
-    <!-- Main Chat Area -->
-    <main class="chat-main">
-      <!-- Messages Area -->
-      <div class="messages-area">
-        <div class="empty-chat">
-          <h2>Start a Conversation</h2>
-          <p>Send a message to begin chatting with the AI agent</p>
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-w-0 bg-background relative h-full">
+      <!-- Top Bar (Optional based on design doc 3.1 right side header) -->
+      <!-- <header class="h-14 border-b border-border flex items-center justify-between px-6 shrink-0 z-10 bg-background/80 backdrop-blur-sm sticky top-0">
+          <div class="text-sm font-medium flex items-center gap-2">
+             <span class="text-muted-foreground">Model:</span>
+             <span class="bg-secondary px-2 py-0.5 rounded text-xs">GPT-4o</span>
+          </div>
+      </header> -->
+
+      <!-- Chat Messages -->
+      <div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 flex flex-col items-center">
+        <!-- Empty State -->
+        <div
+          class="flex flex-col items-center justify-center h-full max-w-2xl text-center space-y-8 mt-[-10vh]"
+        >
+          <div
+            class="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center border border-indigo-500/20 shadow-2xl shadow-indigo-500/5"
+          >
+            <Bot class="w-10 h-10 text-indigo-400" :stroke-width="1.5" />
+          </div>
+          <div class="space-y-2">
+            <h1 class="text-2xl font-semibold tracking-tight text-foreground">
+              How can I help you today?
+            </h1>
+            <p class="text-muted-foreground text-sm max-w-md mx-auto">
+              I can assist you with coding, analysis, and creative tasks. I have access to tools and
+              your knowledge base.
+            </p>
+          </div>
+
+          <!-- Quick Starters -->
+          <div class="grid grid-cols-2 gap-3 w-full max-w-lg">
+            <button
+              class="p-3 rounded-xl border border-border bg-card hover:bg-accent/50 hover:border-accent/50 transition-all text-left text-sm group"
+            >
+              <div
+                class="font-medium text-foreground mb-1 group-hover:text-primary transition-colors"
+              >
+                Analyze code
+              </div>
+              <div class="text-xs text-muted-foreground">Check for bugs in my project</div>
+            </button>
+            <button
+              class="p-3 rounded-xl border border-border bg-card hover:bg-accent/50 hover:border-accent/50 transition-all text-left text-sm group"
+            >
+              <div
+                class="font-medium text-foreground mb-1 group-hover:text-primary transition-colors"
+              >
+                Summarize text
+              </div>
+              <div class="text-xs text-muted-foreground">Create a summary of this document</div>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Input Area -->
-      <div class="input-area">
-        <div class="input-container">
+      <div class="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto w-full z-20">
+        <div
+          class="relative flex flex-col bg-secondary/40 backdrop-blur-sm border border-border/50 rounded-xl focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all shadow-lg hover:border-border/80"
+        >
           <textarea
-            ref="inputRef"
             v-model="inputMessage"
-            class="message-input"
+            class="w-full bg-transparent border-none text-sm p-4 min-h-[60px] max-h-[200px] resize-none focus:ring-0 placeholder:text-muted-foreground/70 font-sans leading-relaxed"
             placeholder="Type your message..."
             rows="1"
             @keydown="handleKeydown"
           ></textarea>
-          <button
-            class="send-btn"
-            :disabled="!inputMessage.trim() || sessionStore.isStreaming"
-            @click="handleSend"
-          >
-            <Send class="w-4 h-4" />
-          </button>
+
+          <div class="flex items-center justify-between p-2 pl-4">
+            <div class="flex items-center gap-2">
+              <button
+                class="p-2 text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-colors"
+                title="Attach"
+              >
+                <Paperclip class="w-4 h-4" :stroke-width="1.5" />
+              </button>
+              <div class="h-4 w-px bg-border/50 mx-1"></div>
+              <button
+                class="flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-border/50"
+              >
+                <span>GPT-4o</span>
+                <ChevronDown class="w-3 h-3 opacity-50" />
+              </button>
+            </div>
+
+            <button
+              class="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md hover:shadow-primary/20"
+              :disabled="!inputMessage.trim() || sessionStore.isStreaming"
+              @click="handleSend"
+            >
+              <Send class="w-4 h-4" :stroke-width="1.5" />
+            </button>
+          </div>
         </div>
-        <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+        <div class="text-center mt-3 text-[10px] text-muted-foreground/60 font-mono">
+          Agentex can make mistakes. Consider checking important information.
+        </div>
       </div>
     </main>
   </div>
 </template>
 
 <style scoped>
-  .chat-view {
-    display: flex;
-    height: 100vh;
-    background: var(--color-bg-primary);
+  /* Custom Scrollbar for Webkit */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
-
-  /* Sidebar */
-  .sidebar {
-    width: 260px;
-    display: flex;
-    flex-direction: column;
-    background: var(--color-bg-secondary);
-    border-right: var(--border-width) solid var(--color-border-default);
-    transition: width var(--transition-normal);
-  }
-
-  .sidebar.collapsed {
-    width: 60px;
-  }
-
-  .sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--spacing-3);
-    border-bottom: var(--border-width) solid var(--color-border-muted);
-  }
-
-  .sidebar.collapsed .sidebar-header {
-    justify-content: center;
-  }
-
-  .sidebar.collapsed .sidebar-header > :last-child {
-    display: none;
-  }
-
-  .sidebar-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--spacing-3);
-  }
-
-  .sidebar-footer {
-    padding: var(--spacing-3);
-    border-top: var(--border-width) solid var(--color-border-muted);
-  }
-
-  .empty-sessions {
-    text-align: center;
-    padding: var(--spacing-8) var(--spacing-4);
-    color: var(--color-text-tertiary);
-    font-size: var(--text-sm);
-  }
-
-  .sidebar.collapsed .empty-sessions {
-    display: none;
-  }
-
-  .text-muted {
-    color: var(--color-text-disabled);
-    font-size: var(--text-xs);
-    margin-top: var(--spacing-1);
-  }
-
-  /* Icon Button */
-  .icon-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
+  ::-webkit-scrollbar-track {
     background: transparent;
-    border: var(--border-width) solid transparent;
-    border-radius: var(--radius-md);
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    transition:
-      background var(--transition-fast),
-      color var(--transition-fast),
-      border-color var(--transition-fast);
   }
-
-  .icon-btn:hover {
-    background: var(--color-bg-hover);
-    color: var(--color-text-primary);
-    border-color: var(--color-border-default);
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
   }
-
-  /* Main Chat Area */
-  .chat-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .messages-area {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--spacing-6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .empty-chat {
-    text-align: center;
-    color: var(--color-text-secondary);
-  }
-
-  .empty-chat h2 {
-    font-size: var(--text-xl);
-    font-weight: var(--font-semibold);
-    margin-bottom: var(--spacing-2);
-    color: var(--color-text-primary);
-  }
-
-  .empty-chat p {
-    font-size: var(--text-sm);
-    color: var(--color-text-tertiary);
-  }
-
-  /* Input Area */
-  .input-area {
-    padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
-    border-top: var(--border-width) solid var(--color-border-muted);
-  }
-
-  .input-container {
-    display: flex;
-    align-items: flex-end;
-    gap: var(--spacing-3);
-    padding: var(--spacing-3);
-    background: var(--color-bg-secondary);
-    border: var(--border-width) solid var(--color-border-default);
-    border-radius: var(--radius-lg);
-    transition: border-color var(--transition-fast);
-  }
-
-  .input-container:focus-within {
-    border-color: var(--color-border-focus);
-  }
-
-  .message-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--color-text-primary);
-    font-size: var(--text-base);
-    font-family: var(--font-sans);
-    resize: none;
-    min-height: 24px;
-    max-height: 200px;
-    line-height: 1.5;
-  }
-
-  .message-input::placeholder {
-    color: var(--color-text-tertiary);
-  }
-
-  .send-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: var(--color-accent-primary);
-    border: none;
-    border-radius: var(--radius-md);
-    color: var(--color-text-primary);
-    cursor: pointer;
-    transition:
-      background var(--transition-fast),
-      opacity var(--transition-fast);
-  }
-
-  .send-btn:hover:not(:disabled) {
-    background: var(--color-accent-hover);
-  }
-
-  .send-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .input-hint {
-    margin-top: var(--spacing-2);
-    font-size: var(--text-xs);
-    color: var(--color-text-disabled);
-    text-align: center;
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-muted-foreground);
   }
 </style>

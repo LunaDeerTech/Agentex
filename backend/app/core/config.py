@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: RedisDsn = Field(default="redis://localhost:6379/0")
     REDIS_MAX_CONNECTIONS: int = 10
+    REDIS_DEFAULT_TTL: int = 3600
+    REDIS_SENTINEL_HOSTS: str = Field(default="")
+    REDIS_SENTINEL_SERVICE_NAME: str = Field(default="")
+    REDIS_SENTINEL_PASSWORD: str | None = None
 
     # Security
     SECRET_KEY: str = Field(
@@ -71,21 +75,31 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        return [
+            origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()
+        ]
 
     @property
     def cors_allow_methods_list(self) -> list[str]:
         """Parse CORS methods."""
         if self.CORS_ALLOW_METHODS == "*":
             return ["*"]
-        return [method.strip() for method in self.CORS_ALLOW_METHODS.split(",") if method.strip()]
+        return [
+            method.strip()
+            for method in self.CORS_ALLOW_METHODS.split(",")
+            if method.strip()
+        ]
 
     @property
     def cors_allow_headers_list(self) -> list[str]:
         """Parse CORS headers."""
         if self.CORS_ALLOW_HEADERS == "*":
             return ["*"]
-        return [header.strip() for header in self.CORS_ALLOW_HEADERS.split(",") if header.strip()]
+        return [
+            header.strip()
+            for header in self.CORS_ALLOW_HEADERS.split(",")
+            if header.strip()
+        ]
 
     @property
     def database_url_sync(self) -> str:

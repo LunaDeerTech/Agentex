@@ -1,20 +1,58 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    name: 'Home',
-    component: () => import('@/views/HomeView.vue'),
+    name: 'Chat',
+    component: () => import('@/views/ChatView.vue'),
+    meta: { requiresAuth: true, title: 'Chat - Agentex' }
+  },
+  {
+    path: '/settings',
+    component: () => import('@/layouts/SettingsLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        redirect: { name: 'SettingsProfile' }
+      },
+      {
+        path: 'profile',
+        name: 'SettingsProfile',
+        component: () => import('@/views/settings/ProfileView.vue'),
+        meta: { title: 'Settings - Profile' }
+      },
+      {
+        path: 'api-keys',
+        name: 'SettingsApiKeys',
+        component: () => import('@/views/settings/ApiKeysView.vue'),
+        meta: { title: 'Settings - API Keys' }
+      },
+      {
+        path: ':category',
+        name: 'SettingsCategory',
+        component: () => import('@/views/settings/ApiKeysView.vue'), // Temporary placeholder
+        meta: { title: 'Settings' }
+      }
+    ]
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/auth/LoginView.vue'),
     meta: {
-      title: 'Agentex - AI Agent Platform'
+      title: 'Sign In - Agentex',
+      guestOnly: true
     }
   },
   {
-    path: '/chat',
-    name: 'Chat',
-    component: () => import('@/views/ChatView.vue'),
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/auth/RegisterView.vue'),
     meta: {
-      title: 'Chat - Agentex'
+      title: 'Sign Up - Agentex',
+      guestOnly: true
     }
   },
   {
@@ -39,13 +77,24 @@ const router = createRouter({
   }
 })
 
-// 动态设置页面标题
+// Navigation Guard
 router.beforeEach((to, _from, next) => {
+  // Update document title
   const title = to.meta.title as string | undefined
   if (title) {
     document.title = title
   }
-  next()
+
+  // Auth Guard
+  const authStore = useAuthStore()
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next('/login')
+  } else if (to.meta.guestOnly && authStore.isAuthenticated) {
+    next('/')
+  } else {
+    next()
+  }
 })
 
 export default router

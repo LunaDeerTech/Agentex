@@ -1,4 +1,18 @@
-"""Async database configuration using SQLAlchemy 2.0."""
+"""
+Async database configuration using SQLAlchemy 2.0.
+
+This module provides:
+- Async database engine with connection pooling
+- Async session factory
+- Database session dependency for FastAPI
+- Database lifecycle management functions
+
+Connection Pool Configuration:
+- pool_size: Maximum number of permanent connections
+- max_overflow: Maximum number of temporary connections
+- pool_timeout: Seconds to wait before giving up on getting a connection
+- echo: Log all SQL statements (for debugging)
+"""
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -20,12 +34,13 @@ class Base(DeclarativeBase):
     pass
 
 
-# Create async engine
+# Create async engine with connection pooling
 engine: AsyncEngine = create_async_engine(
     str(settings.DATABASE_URL),
     pool_size=settings.DATABASE_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_OVERFLOW,
     pool_timeout=settings.DATABASE_POOL_TIMEOUT,
+    pool_pre_ping=True,  # Verify connections before using
     echo=settings.DATABASE_ECHO,
     future=True,
 )
@@ -43,7 +58,7 @@ async_session_factory = async_sessionmaker(
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     Dependency that provides an async database session.
-    
+
     Usage:
         @router.get("/items")
         async def get_items(db: AsyncSession = Depends(get_db)):
@@ -64,7 +79,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def get_db_context() -> AsyncGenerator[AsyncSession, None]:
     """
     Context manager for database sessions outside of request context.
-    
+
     Usage:
         async with get_db_context() as session:
             ...
