@@ -1,122 +1,82 @@
-# Agentex - AI Agent Platform Development Guide
+# Agentex Development Guide
 
-## Project Overview
-Agentex is a Web AI Agent platform with MCP (Model Context Protocol) integration, RAG knowledge bases, SKILL management, and a rule engine. The project is currently in the **design/documentation phase** - implementation has not yet started.
+## Architecture
+Web AI Agent platform: Vue 3 + TypeScript frontend ↔ FastAPI async backend ↔ PostgreSQL/Redis/Milvus.
 
-## Architecture Summary
 ```
-Frontend (Vue 3 + TS + shadcn-vue + Inspira UI)
-    ↓ HTTP REST / AG-UI (SSE)
-Backend (FastAPI + SQLAlchemy 2.0 async)
-    ↓                    ↓
-PostgreSQL + Redis   External Services (LLM APIs, MCP Servers)
-    ↓
-Milvus (Vector DB for RAG)
+frontend/src/       → Vue 3 SFCs, Pinia stores, Axios API layer
+backend/app/api/    → FastAPI routers (thin, delegate to services)
+backend/app/services/ → Business logic (class-based, injected AsyncSession)
+backend/app/models/ → SQLAlchemy 2.0 ORM (UUID PKs, soft delete via BaseModel)
 ```
 
-## Tech Stack & Versions
-| Layer | Stack |
-|-------|-------|
-| Backend | Python 3.11+, FastAPI 0.110+, SQLAlchemy 2.0 (async), Pydantic 2.0 |
-| Frontend | Vue 3.4+, TypeScript 5.3+, Vite 5.0+, Pinia, shadcn-vue, Inspira UI |
-| Database | PostgreSQL 15+, Redis 7.0+, Milvus 2.3+ |
-| Communication | AG-UI protocol (SSE), WebSocket for WS-MCP |
-| UI Design | Linear 极简风 (Dark theme, 1px borders, Inter/JetBrains Mono fonts) |
-
-## Project Structure (Target)
-```
-agentex/
-├── backend/
-│   ├── app/
-│   │   ├── api/          # FastAPI routers (RESTful endpoints)
-│   │   ├── core/         # Config, security, dependencies
-│   │   ├── models/       # SQLAlchemy ORM models (UUID PKs, soft delete)
-│   │   ├── schemas/      # Pydantic request/response schemas
-│   │   ├── services/     # Business logic layer
-│   │   ├── agents/       # Agent implementations (ReAct, AgenticRAG, etc.)
-│   │   └── utils/        # Helpers and utilities
-│   ├── tests/
-│   └── main.py
-├── frontend/
-│   ├── src/
-│   │   ├── api/          # Axios API client functions
-│   │   ├── components/   # Reusable Vue components
-│   │   ├── composables/  # Vue composition functions
-│   │   ├── stores/       # Pinia state stores
-│   │   ├── views/        # Page-level components
-│   │   └── router/       # Vue Router config
-└── docs/                 # Design documentation (reference these!)
-```
-
-## Key Design Patterns
-
-### Backend Conventions
-- **Layered architecture**: API → Service → Data Access (no direct DB calls in routers)
-- **All async**: Use `async/await` throughout, `AsyncSession` for DB
-- **UUIDs for PKs**: All tables use UUID primary keys, not auto-increment
-- **Soft delete**: Include `is_deleted` field on entities
-- **Standard timestamps**: Always include `created_at`, `updated_at`
-- **Response format**: `{ "code": 0, "message": "success", "data": {...} }`
-- **Error codes**: 40xxx (client), 50xxx (server) - see [APIDesign.md](docs/APIDesign.md#14-错误码定义)
-
-### Frontend Conventions
-- **Composition API + TypeScript**: All components use `<script setup lang="ts">`
-- **Linear 极简风格**: Dark theme with 1px borders, no shadows for elevation
-- **shadcn-vue + Inspira UI**: Base components from shadcn-vue, sci-fi effects from Inspira UI
-- **Color palette**: Follow Obsidian palette in [FrontendDesign.md](docs/FrontendDesign.md#13-色彩规范)
-- **Typography**: Inter for UI text, JetBrains Mono for code/agent output
-- **Icons**: Lucide with `stroke-width: 1.5px`
-- **Pinia stores**: One store per domain (user, session, model, mcp, etc.)
-- **API layer**: Wrap all Axios calls in `src/api/` modules
-
-### Database Naming
-- Tables: lowercase, plural, underscore-separated (`chat_sessions`, `mcp_connections`)
-- Columns: lowercase, underscore-separated (`user_id`, `created_at`)
-- Foreign keys: `<singular_table>_id` pattern
-- See full conventions in [DatabaseDesign.md](docs/DatabaseDesign.md#12-命名规范)
-
-## Core Modules & Services
-
-| Module | Purpose | Key Files |
-|--------|---------|-----------|
-| UserService | Auth, JWT, API keys | `services/user_service.py` |
-| SessionService | Chat sessions & messages | `services/session_service.py` |
-| ModelService | LLM provider configs | `services/model_service.py` |
-| MCPService | Standard + WS-MCP clients | `services/mcp_service.py` |
-| SkillService | SKILL.md parsing & execution | `services/skill_service.py` |
-| RAGService | Knowledge base + vector search | `services/rag_service.py` |
-| RuleService | Event-triggered automation | `services/rule_service.py` |
-| AgentService | Agent orchestration (ReAct, etc.) | `services/agent_service.py` |
-
-## Protocol-Specific Notes
-
-### AG-UI Protocol (Frontend ↔ Backend)
-- Uses **Server-Sent Events (SSE)** for streaming agent responses
-- Events: `TEXT_MESSAGE_START`, `TEXT_MESSAGE_CONTENT`, `TOOL_CALL_START`, `TOOL_CALL_END`, etc.
-- See [SystemArchitecture.md](docs/SystemArchitecture.md) section 3 for event types
-
-### WS-MCP Protocol (Backend ↔ MCP Servers)
-- WebSocket-based JSON-RPC 2.0 with auth wrapper
-- Message types: `auth`, `message`, `ping`, `pong`, `error`, `close`
-- See full protocol spec in [CustomizeWsMessageProcotol.md](docs/CustomizeWsMessageProcotol.md)
-
-## Development Commands
+## Key Commands
 ```bash
-# Backend
-cd backend
-pip install -r requirements.txt
-python -m uvicorn main:app --reload
-
-# Frontend
-cd frontend
-npm install
-npm run dev
+make dev-backend          # uvicorn app.main:app --reload (port 8000)
+make dev-frontend         # npm run dev (port 5173)
+make test-backend         # pytest tests/ -v
+make lint-backend         # ruff check + mypy
+cd backend && alembic upgrade head   # run migrations
 ```
 
-## Documentation Reference
-All design docs are in `docs/` - **read these before implementing**:
-- [APIDesign.md](docs/APIDesign.md) - REST API specifications with examples
-- [DatabaseDesign.md](docs/DatabaseDesign.md) - All table schemas
-- [BackendDesign.md](docs/BackendDesign.md) - Service interfaces and business rules
-- [FrontendDesign.md](docs/FrontendDesign.md) - UI specs and component breakdown
-- [AIPrompts.md](docs/AIPrompts.md) - Prompt templates for common dev tasks
+## Backend Patterns
+
+### Layered Architecture
+Routers → Services → Models. **Never call DB directly in routers.**
+```python
+# In api/v1/auth.py - router instantiates service
+auth_service = AuthService(db)
+result = await auth_service.register(user_data)
+```
+
+### Model Conventions (see backend/app/models/base.py)
+- Inherit from `BaseModel` for UUID pk + timestamps + soft delete
+- Tables: plural, snake_case (`users`, `api_keys`, `user_roles`)
+- All datetime fields use `DateTime(timezone=True)`
+
+### Response/Error Format (see backend/app/core/exceptions.py)
+```python
+{"code": 0, "message": "success", "data": {...}}  # success
+{"code": 40100, "message": "...", "data": null}   # 401 error
+```
+Use `AppError(code, message, status_code)` for business errors.
+
+### Auth Dependencies (see backend/app/api/deps.py)
+```python
+user: User = Depends(get_current_user)         # JWT or API key
+user: User = Depends(get_current_active_user)  # + is_active check
+require_permissions("module", "action")         # decorator for RBAC
+```
+
+### Testing (see backend/tests/conftest.py)
+Use `pytest-asyncio`. Key fixtures: `client` (AsyncClient), `db` (AsyncSession), `test_user`.
+
+## Frontend Patterns
+
+### API Layer (see frontend/src/api/request.ts)
+- All calls go through Axios instance with auth interceptor
+- Responses unwrap `data` field; code ≠ 0 → Promise.reject
+- Token stored in localStorage, injected via `useAuthStore`
+
+### Stores (see frontend/src/stores/auth.ts)
+- Pinia with Composition API: `defineStore('name', () => { ... })`
+- One store per domain: `auth`, `session`, `user`
+
+### Components
+- Use `<script setup lang="ts">` exclusively
+- UI primitives in `src/components/ui/` (shadcn-vue style)
+
+## Database Migrations
+```bash
+cd backend
+alembic revision --autogenerate -m "description"  # create migration
+alembic upgrade head                              # apply
+alembic downgrade -1                              # rollback one
+```
+
+## Design Docs Reference
+Read before implementing new features:
+- [docs/APIDesign.md](docs/APIDesign.md) - endpoint specs, error codes
+- [docs/DatabaseDesign.md](docs/DatabaseDesign.md) - full schema reference
+- [docs/BackendDesign.md](docs/BackendDesign.md) - service interfaces
+- [docs/FrontendDesign.md](docs/FrontendDesign.md) - UI/UX specs, color palette
