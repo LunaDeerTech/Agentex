@@ -1,3 +1,4 @@
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
@@ -47,7 +48,7 @@
       </div>
 
       <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6">
-        <form @submit.prevent="handleLogin" class="space-y-4">
+        <form class="space-y-4" @submit.prevent="handleLogin">
           <div class="space-y-2">
             <label
               class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"

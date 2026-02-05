@@ -1,3 +1,4 @@
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <template>
   <div class="space-y-8 animate-in fade-in duration-500">
     <!-- Header -->
@@ -20,23 +21,19 @@
     </div>
 
     <!-- Empty State -->
-    <div
+    <EmptyState
       v-else-if="models.length === 0"
-      class="flex flex-col items-center justify-center p-16 text-center border border-dashed border-border rounded-lg bg-muted/20"
+      title="No models configured"
+      description="Add your first LLM model to start using AI features. We support OpenAI and Anthropic providers."
+      :icon="Bot"
     >
-      <div class="flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-6">
-        <Bot class="w-8 h-8 text-muted-foreground" />
-      </div>
-      <h3 class="text-lg font-medium text-foreground mb-2">No models configured</h3>
-      <p class="text-sm text-muted-foreground max-w-sm mb-8 leading-relaxed">
-        Add your first LLM model to start using AI features. We support OpenAI and Anthropic
-        providers.
-      </p>
-      <Button class="gap-2" @click="openCreateDialog">
-        <Plus class="w-4 h-4" />
-        Add Your First Model
-      </Button>
-    </div>
+      <template #actions>
+        <Button class="gap-2 mt-2" @click="openCreateDialog">
+          <Plus class="w-4 h-4" />
+          Add Your First Model
+        </Button>
+      </template>
+    </EmptyState>
 
     <!-- Models List -->
     <div v-else class="grid gap-4">
@@ -302,8 +299,6 @@
   import {
     PROVIDER_OPTIONS,
     MODEL_PRESETS,
-    getProviderLabel,
-    getProviderIcon,
     type LLMModel,
     type LLMProvider,
     type LLMModelTestResponse
@@ -312,22 +307,14 @@
   // Components
   import Button from '@/components/ui/Button.vue'
   import Input from '@/components/ui/Input.vue'
-  import Card from '@/components/ui/Card.vue'
   import ModelCard from '@/components/settings/ModelCard.vue'
+  import EmptyState from '@/components/ui/EmptyState.vue'
 
   // Icons
   import {
     Bot,
     Plus,
     Loader2,
-    Trash2,
-    Edit2,
-    Play,
-    CheckCircle2,
-    XCircle,
-    Key,
-    Globe,
-    Thermometer,
     X,
     AlertCircle,
     AlertTriangle,
@@ -436,7 +423,7 @@
 
       if (isEditing.value && editingModelId.value) {
         // Build update payload
-        const updateData: Record<string, any> = {}
+        const updateData: Record<string, unknown> = {}
         if (formData.name) updateData.name = formData.name
         if (modelId) updateData.model_id = modelId
         if (formData.api_key) updateData.api_key = formData.api_key
@@ -518,23 +505,3 @@
     store.fetchModels()
   })
 </script>
-
-<style scoped>
-  .list-move, /* apply transition to moving elements */
-.list-enter-active,
-.list-leave-active {
-    transition: all 0.3s ease;
-  }
-
-  .list-enter-from,
-  .list-leave-to {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  /* Ensure leave items are taken out of layout flow so others move smoothly */
-  .list-leave-active {
-    position: absolute;
-    width: 100%;
-  }
-</style>

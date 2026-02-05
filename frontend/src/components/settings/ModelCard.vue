@@ -1,3 +1,4 @@
+<!-- eslint-disable @typescript-eslint/no-unused-vars -->
 <script setup lang="ts">
   import { type PropType } from 'vue'
   import {
@@ -115,7 +116,7 @@
           :disabled="isLoading"
           @click="$emit('set-default', model)"
         >
-          Default
+          Set Default
         </Button>
         <Button
           variant="ghost"

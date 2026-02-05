@@ -2,6 +2,7 @@
   import { computed } from 'vue'
   import { cva, type VariantProps } from 'class-variance-authority'
   import { cn } from '@/lib/utils'
+  import { Primitive, type PrimitiveProps } from 'radix-vue'
 
   const buttonVariants = cva(
     'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
@@ -33,10 +34,9 @@
 
   type ButtonVariants = VariantProps<typeof buttonVariants>
 
-  interface Props {
+  interface Props extends PrimitiveProps {
     variant?: ButtonVariants['variant']
     size?: ButtonVariants['size']
-    asChild?: boolean
     disabled?: boolean
     type?: 'button' | 'submit' | 'reset'
   }
@@ -44,7 +44,7 @@
   const props = withDefaults(defineProps<Props>(), {
     variant: 'default',
     size: 'default',
-    asChild: false,
+    as: 'button',
     disabled: false,
     type: 'button'
   })
@@ -53,7 +53,13 @@
 </script>
 
 <template>
-  <button :type="type" :class="classes" :disabled="disabled">
+  <Primitive
+    :as="as"
+    :as-child="asChild"
+    :class="classes"
+    :disabled="disabled"
+    :type="as === 'button' ? type : undefined"
+  >
     <slot />
-  </button>
+  </Primitive>
 </template>

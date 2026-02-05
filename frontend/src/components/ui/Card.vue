@@ -13,10 +13,7 @@
 <template>
   <div
     :class="
-      cn(
-        'rounded-xl border border-[var(--color-border-default)] bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] shadow-sm',
-        props.class
-      )
+      cn('rounded-xl border border-border bg-card text-card-foreground shadow-sm', props.class)
     "
   >
     <slot />

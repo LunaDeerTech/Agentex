@@ -78,8 +78,8 @@
           Project Planning
         </div> -->
         <div
-          class="flex flex-col items-center justify-center py-10 text-muted-foreground text-sm text-center px-4"
           v-if="!appStore.sidebarCollapsed"
+          class="flex flex-col items-center justify-center py-10 text-muted-foreground text-sm text-center px-4"
         >
           <span class="opacity-50 text-xs">No conversations yet</span>
         </div>
@@ -100,8 +100,8 @@
             <div class="text-[10px] text-muted-foreground truncate">user@example.com</div>
           </div>
           <router-link
-            to="/settings"
             v-if="!appStore.sidebarCollapsed"
+            to="/settings"
             class="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-background"
           >
             <Settings class="w-4 h-4" :stroke-width="1.5" />
@@ -172,21 +172,3 @@
     </main>
   </div>
 </template>
-
-<style scoped>
-  /* Custom Scrollbar for Webkit */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-muted-foreground);
-  }
-</style>
