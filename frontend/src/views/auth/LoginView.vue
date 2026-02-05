@@ -53,13 +53,7 @@
               class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >Username</label
             >
-            <Input
-              v-model="username"
-              type="text"
-              placeholder="admin"
-              required
-              class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            />
+            <Input v-model="username" type="text" placeholder="admin" required />
           </div>
           <div class="space-y-2">
             <div class="flex items-center justify-between">
@@ -68,12 +62,7 @@
                 >Password</label
               >
             </div>
-            <Input
-              v-model="password"
-              type="password"
-              required
-              class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            />
+            <Input v-model="password" type="password" required />
           </div>
 
           <div v-if="error" class="text-sm text-destructive font-medium text-center">

@@ -182,11 +182,7 @@
             <div class="grid gap-4">
               <div class="space-y-2">
                 <label class="text-sm font-medium text-foreground">Current Password</label>
-                <Input
-                  v-model="passwordForm.currentPassword"
-                  type="password"
-                  placeholder="••••••••"
-                />
+                <Input v-model="passwordForm.currentPassword" type="password" placeholder="" />
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
