@@ -2,11 +2,18 @@
 Chat session model.
 """
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import UUID, Boolean, Column, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 from .base import BaseModel
+
+if TYPE_CHECKING:
+    from app.models.llm_model import LLMModel
+    from app.models.message import ChatMessage
+    from app.models.user import User
 
 
 class ChatSession(BaseModel):

@@ -571,6 +571,102 @@ EventProcessor
 
 ---
 
+### 2.8 自定义 Agent 服务模块 (CustomAgentService)
+
+#### 2.8.1 功能职责
+
+- 自定义 Agent 配置的创建、管理
+- Agent 预设资源的关联管理（知识库、MCP 连接、SKILL）
+- 系统默认 Agent 的提供
+- Agent 架构类型信息查询
+
+#### 2.8.2 核心接口
+
+```
+CustomAgentService
+├── list_agents(user_id, include_default) → List[CustomAgent]
+│   └── 获取 Agent 列表（包含系统默认和用户自定义）
+│
+├── get_agent(agent_id, user_id) → CustomAgent
+│   └── 获取 Agent 详情
+│
+├── create_agent(user_id, data) → CustomAgent
+│   └── 创建自定义 Agent
+│
+├── update_agent(agent_id, user_id, data) → CustomAgent
+│   └── 更新自定义 Agent（不能修改系统默认 Agent）
+│
+├── delete_agent(agent_id, user_id) → void
+│   └── 删除自定义 Agent（不能删除系统默认 Agent）
+│
+├── duplicate_agent(agent_id, user_id, name) → CustomAgent
+│   └── 复制 Agent（可基于系统默认创建自定义版本）
+│
+├── get_agent_types() → List[AgentTypeInfo]
+│   └── 获取所有支持的 Agent 架构类型及其默认配置
+│
+├── get_default_agents() → List[CustomAgent]
+│   └── 获取所有系统默认 Agent
+│
+└── get_agent_resources(agent_id) → AgentResources
+    └── 获取 Agent 关联的所有资源详情
+```
+
+#### 2.8.3 自定义 Agent 数据结构
+
+```
+CustomAgent
+├── id: str
+├── name: str
+├── description: str
+├── agent_type: str              # react/agentic_rag/plan_execute
+├── system_prompt: str           # 系统提示词
+├── icon: str                    # 图标（emoji 或图标名）
+├── is_default: bool             # 是否为系统默认
+├── enabled: bool                # 是否启用
+├── owner_id: str                # 所有者（系统默认时为 NULL）
+├── knowledge_base_ids: List[str]  # 关联知识库
+├── mcp_connection_ids: List[str]  # 关联 MCP 连接
+├── skill_ids: List[str]         # 关联 SKILL
+├── created_at: datetime
+└── updated_at: datetime
+
+AgentTypeInfo
+├── type: str                    # 类型标识
+├── name: str                    # 显示名称
+├── description: str             # 类型描述
+├── default_system_prompt: str   # 默认系统提示词
+├── supports_tools: bool         # 是否支持工具调用
+└── supports_knowledge_base: bool  # 是否支持知识库
+
+AgentResources
+├── knowledge_bases: List[KnowledgeBase]
+├── mcp_connections: List[MCPConnection]
+└── skills: List[Skill]
+```
+
+#### 2.8.4 系统默认 Agent
+
+系统预置三种架构的默认 Agent，用户可以直接使用或基于它们创建自定义版本：
+
+| Agent 名称 | 类型 | 描述 | 默认系统提示词要点 |
+|-----------|------|------|------------------|
+| ReAct Agent | react | 通用多轮对话 Agent | 步骤推理、工具调用、观察反馈 |
+| RAG Agent | agentic_rag | 知识检索 Agent | 主动检索、知识整合、来源引用 |
+| Plan & Execute Agent | plan_execute | 任务规划 Agent | 任务分解、执行监控、结果汇总 |
+
+#### 2.8.5 业务规则
+
+| 规则 | 说明 |
+|------|------|
+| 系统默认不可修改 | is_default=true 的 Agent 不能编辑或删除 |
+| 资源访问验证 | 关联的资源必须是用户有权访问的 |
+| 名称唯一性 | 同一用户下 Agent 名称不能重复 |
+| 自定义 Agent 上限 | 每用户最多 50 个自定义 Agent |
+| 复制保留配置 | 复制时保留原 Agent 的所有配置 |
+
+---
+
 ## 3. Agent 架构模块设计
 
 ### 3.1 Agent 基类
@@ -1033,17 +1129,17 @@ AGUIEventGenerator
 
 async def run_agent_with_agui(input: RunAgentInput) → AsyncGenerator[bytes, None]:
     encoder = EventEncoder(accept="text/event-stream")
-    
+
     # 1. 运行开始
     yield encoder.encode(RunStartedEvent(
         type=EventType.RUN_STARTED,
         thread_id=input.thread_id,
         run_id=input.run_id
     ))
-    
+
     # 2. 创建 Agent 并执行
     agent = AgentFactory.create(input.forwarded_props.agent_type)
-    
+
     async for event in agent.run_stream(input):
         if event.type == "thinking":
             yield encoder.encode(StepStartedEvent(step_name="thinking"))
@@ -1052,7 +1148,7 @@ async def run_agent_with_agui(input: RunAgentInput) → AsyncGenerator[bytes, No
                 yield encoder.encode(TextMessageContentEvent(delta=chunk))
             yield encoder.encode(TextMessageEndEvent(...))
             yield encoder.encode(StepFinishedEvent(step_name="thinking"))
-        
+
         elif event.type == "tool_call":
             yield encoder.encode(ToolCallStartEvent(...))
             yield encoder.encode(ToolCallArgsEvent(...))
@@ -1060,13 +1156,13 @@ async def run_agent_with_agui(input: RunAgentInput) → AsyncGenerator[bytes, No
             # 执行工具
             result = await execute_tool(event.tool_name, event.args)
             yield encoder.encode(ToolCallResultEvent(content=result))
-        
+
         elif event.type == "response":
             yield encoder.encode(TextMessageStartEvent(role="assistant"))
             for chunk in event.content:
                 yield encoder.encode(TextMessageContentEvent(delta=chunk))
             yield encoder.encode(TextMessageEndEvent(...))
-    
+
     # 3. 运行结束
     yield encoder.encode(RunFinishedEvent(
         type=EventType.RUN_FINISHED,

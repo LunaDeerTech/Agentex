@@ -1281,9 +1281,253 @@ file: (binary)
 
 ---
 
-## 11. 系统配置接口（管理员）
+## 11. 自定义 Agent 接口
 
-### 11.1 获取系统配置
+自定义 Agent 允许用户预配置 Agent 的架构类型、系统提示词和默认资源（知识库、MCP 工具、SKILL）。
+
+### 11.1 获取 Agent 列表
+
+**GET** `/api/v1/agents`
+
+获取用户可用的 Agent 列表，包括系统默认 Agent 和用户自定义 Agent。
+
+**查询参数：**
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| include_default | bool | 是否包含系统默认 Agent（默认 true） |
+| agent_type | string | 按架构类型筛选：react/agentic_rag/plan_execute |
+
+**响应：**
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "items": [
+      {
+        "id": "default-react",
+        "name": "ReAct Agent",
+        "description": "支持多轮思考和工具调用的通用 Agent",
+        "agent_type": "react",
+        "icon": "🤖",
+        "is_default": true,
+        "system_prompt": "You are a helpful AI assistant...",
+        "knowledge_base_ids": [],
+        "mcp_connection_ids": [],
+        "skill_ids": [],
+        "enabled": true,
+        "created_at": null
+      },
+      {
+        "id": "uuid",
+        "name": "代码助手",
+        "description": "专注于代码开发的 Agent",
+        "agent_type": "react",
+        "icon": "💻",
+        "is_default": false,
+        "system_prompt": "You are an expert programmer...",
+        "knowledge_base_ids": ["kb-uuid-1"],
+        "mcp_connection_ids": ["mcp-uuid-1"],
+        "skill_ids": ["skill-uuid-1", "skill-uuid-2"],
+        "enabled": true,
+        "owner": {
+          "id": "user-uuid",
+          "username": "zhangsan"
+        },
+        "created_at": "2026-01-20T10:00:00Z",
+        "updated_at": "2026-02-01T10:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+### 11.2 获取 Agent 详情
+
+**GET** `/api/v1/agents/{agent_id}`
+
+**响应：**
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "id": "uuid",
+    "name": "代码助手",
+    "description": "专注于代码开发的 Agent",
+    "agent_type": "react",
+    "icon": "💻",
+    "is_default": false,
+    "system_prompt": "You are an expert programmer...",
+    "knowledge_bases": [
+      {
+        "id": "kb-uuid-1",
+        "name": "技术文档知识库"
+      }
+    ],
+    "mcp_connections": [
+      {
+        "id": "mcp-uuid-1",
+        "name": "GitHub MCP"
+      }
+    ],
+    "skills": [
+      {
+        "id": "skill-uuid-1",
+        "name": "代码审查"
+      }
+    ],
+    "enabled": true,
+    "owner": {
+      "id": "user-uuid",
+      "username": "zhangsan"
+    },
+    "created_at": "2026-01-20T10:00:00Z",
+    "updated_at": "2026-02-01T10:00:00Z"
+  }
+}
+```
+
+### 11.3 创建自定义 Agent
+
+**POST** `/api/v1/agents`
+
+**请求体：**
+```json
+{
+  "name": "运维助手",
+  "description": "专注于服务器运维的 Agent",
+  "agent_type": "react",
+  "icon": "🔧",
+  "system_prompt": "You are an expert DevOps engineer...",
+  "knowledge_base_ids": ["kb-uuid-1", "kb-uuid-2"],
+  "mcp_connection_ids": ["mcp-uuid-1"],
+  "skill_ids": ["skill-uuid-1"],
+  "enabled": true
+}
+```
+
+**响应：**
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "id": "uuid",
+    "name": "运维助手",
+    "description": "专注于服务器运维的 Agent",
+    "agent_type": "react",
+    "icon": "🔧",
+    "is_default": false,
+    "system_prompt": "You are an expert DevOps engineer...",
+    "knowledge_base_ids": ["kb-uuid-1", "kb-uuid-2"],
+    "mcp_connection_ids": ["mcp-uuid-1"],
+    "skill_ids": ["skill-uuid-1"],
+    "enabled": true,
+    "created_at": "2026-02-03T10:00:00Z"
+  }
+}
+```
+
+### 11.4 更新自定义 Agent
+
+**PUT** `/api/v1/agents/{agent_id}`
+
+**请求体：**
+```json
+{
+  "name": "运维助手 Pro",
+  "description": "升级版运维 Agent",
+  "system_prompt": "You are a senior DevOps engineer...",
+  "knowledge_base_ids": ["kb-uuid-1", "kb-uuid-2", "kb-uuid-3"],
+  "mcp_connection_ids": ["mcp-uuid-1", "mcp-uuid-2"],
+  "skill_ids": ["skill-uuid-1", "skill-uuid-2"],
+  "enabled": true
+}
+```
+
+> ⚠️ 注意：不能修改系统默认 Agent（is_default=true），只能修改用户自己创建的 Agent。
+
+### 11.5 删除自定义 Agent
+
+**DELETE** `/api/v1/agents/{agent_id}`
+
+> ⚠️ 注意：不能删除系统默认 Agent，只能删除用户自己创建的 Agent。
+
+### 11.6 获取可用的 Agent 架构类型
+
+**GET** `/api/v1/agents/types`
+
+获取系统支持的所有 Agent 架构类型及其默认系统提示词。
+
+**响应：**
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "types": [
+      {
+        "type": "react",
+        "name": "ReAct Agent",
+        "description": "支持多轮思考和工具调用的通用 Agent，采用 Reasoning + Acting 模式",
+        "default_system_prompt": "You are a helpful AI assistant that can reason step by step and use tools when needed...",
+        "supports_tools": true,
+        "supports_knowledge_base": true
+      },
+      {
+        "type": "agentic_rag",
+        "name": "RAG Agent",
+        "description": "专注于知识库检索的 Agent，自动判断何时检索知识",
+        "default_system_prompt": "You are an AI assistant with access to a knowledge base...",
+        "supports_tools": false,
+        "supports_knowledge_base": true
+      },
+      {
+        "type": "plan_execute",
+        "name": "Plan & Execute Agent",
+        "description": "先规划后执行的任务分解 Agent，适合复杂多步骤任务",
+        "default_system_prompt": "You are a planning assistant that breaks down complex tasks...",
+        "supports_tools": true,
+        "supports_knowledge_base": true
+      }
+    ]
+  }
+}
+```
+
+### 11.7 复制 Agent
+
+**POST** `/api/v1/agents/{agent_id}/duplicate`
+
+基于现有 Agent（包括系统默认 Agent）创建一个新的自定义 Agent。
+
+**请求体：**
+```json
+{
+  "name": "我的 ReAct Agent"
+}
+```
+
+**响应：**
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "id": "new-uuid",
+    "name": "我的 ReAct Agent",
+    "is_default": false,
+    ...
+  }
+}
+```
+
+---
+
+## 12. 系统配置接口（管理员）
+
+### 12.1 获取系统配置
 
 **GET** `/api/v1/admin/system/config`
 
@@ -1304,7 +1548,7 @@ file: (binary)
 }
 ```
 
-### 11.2 更新系统配置
+### 12.2 更新系统配置
 
 **PUT** `/api/v1/admin/system/config/{key}`
 
@@ -1315,7 +1559,7 @@ file: (binary)
 }
 ```
 
-### 11.3 获取系统信息
+### 12.3 获取系统信息
 
 **GET** `/api/v1/admin/system/info`
 
@@ -1337,11 +1581,11 @@ file: (binary)
 
 ---
 
-## 12. AG-UI 对话接口
+## 13. AG-UI 对话接口
 
 AG-UI（Agent-User Interaction Protocol）是一个开放的、事件驱动的协议，用于标准化 AI Agent 与用户前端应用之间的通信。本系统采用 AG-UI 协议替代传统 WebSocket 实现 Agent 对话功能。
 
-### 12.1 接口端点
+### 13.1 接口端点
 
 **POST** `/api/v1/agent/run`
 
@@ -1354,7 +1598,7 @@ Authorization: Bearer <access_token>
 Accept: text/event-stream
 ```
 
-### 12.2 请求格式（RunAgentInput）
+### 13.2 请求格式（RunAgentInput）
 
 ```json
 {
@@ -1405,7 +1649,7 @@ Accept: text/event-stream
 | context | array | 上下文信息 |
 | forwarded_props | object | 扩展属性（Agent 配置等） |
 
-### 12.3 响应格式（SSE 事件流）
+### 13.3 响应格式（SSE 事件流）
 
 服务端通过 Server-Sent Events 流式返回 AG-UI 标准事件。
 
@@ -1416,9 +1660,9 @@ Cache-Control: no-cache
 Connection: keep-alive
 ```
 
-### 12.4 事件类型
+### 13.4 事件类型
 
-#### 12.4.1 生命周期事件
+#### 13.4.1 生命周期事件
 
 | 事件类型 | 说明 |
 |---------|------|
@@ -1455,7 +1699,7 @@ event: STEP_FINISHED
 data: {"type":"STEP_FINISHED","step_name":"thinking"}
 ```
 
-#### 12.4.2 文本消息事件
+#### 13.4.2 文本消息事件
 
 | 事件类型 | 说明 |
 |---------|------|
@@ -1481,7 +1725,7 @@ event: TEXT_MESSAGE_END
 data: {"type":"TEXT_MESSAGE_END","message_id":"msg-uuid"}
 ```
 
-#### 12.4.3 工具调用事件
+#### 13.4.3 工具调用事件
 
 | 事件类型 | 说明 |
 |---------|------|
@@ -1505,7 +1749,7 @@ event: TOOL_CALL_RESULT
 data: {"type":"TOOL_CALL_RESULT","message_id":"result-msg-uuid","tool_call_id":"tc-uuid","content":"{\"tps\":20.0}","role":"tool"}
 ```
 
-#### 12.4.4 状态管理事件
+#### 13.4.4 状态管理事件
 
 | 事件类型 | 说明 |
 |---------|------|
@@ -1522,7 +1766,7 @@ event: STATE_DELTA
 data: {"type":"STATE_DELTA","delta":[{"op":"add","path":"/tools_used/-","value":"world_tps_get"}]}
 ```
 
-### 12.5 完整对话流程示例
+### 13.5 完整对话流程示例
 
 ```
 Client → Server (HTTP POST):
@@ -1598,7 +1842,7 @@ event: RUN_FINISHED
 data: {"type":"RUN_FINISHED","thread_id":"session-uuid","run_id":"run-uuid","result":{"usage":{"prompt_tokens":150,"completion_tokens":80}}}
 ```
 
-### 12.6 停止生成
+### 13.6 停止生成
 
 **POST** `/api/v1/agent/run/{run_id}/stop`
 
@@ -1619,7 +1863,7 @@ Authorization: Bearer <access_token>
 }
 ```
 
-### 12.7 Python SDK 集成示例
+### 13.7 Python SDK 集成示例
 
 后端使用 `ag-ui-protocol` Python SDK：
 
@@ -1636,30 +1880,30 @@ from ag_ui.encoder import EventEncoder
 # 伪代码示例
 async def agent_run_endpoint(input_data: RunAgentInput, request: Request):
     encoder = EventEncoder(accept=request.headers.get("accept"))
-    
+
     async def event_generator():
         yield encoder.encode(RunStartedEvent(
             type=EventType.RUN_STARTED,
             thread_id=input_data.thread_id,
             run_id=input_data.run_id
         ))
-        
+
         # Agent 执行逻辑...
-        
+
         yield encoder.encode(RunFinishedEvent(
             type=EventType.RUN_FINISHED,
             thread_id=input_data.thread_id,
             run_id=input_data.run_id
         ))
-    
+
     return StreamingResponse(event_generator(), media_type=encoder.get_content_type())
 ```
 
 ---
 
-## 13. 附录
+## 14. 附录
 
-### 13.1 Agent 类型
+### 14.1 Agent 类型
 
 | 类型标识 | 名称 | 说明 |
 |---------|------|------|
@@ -1668,7 +1912,7 @@ async def agent_run_endpoint(input_data: RunAgentInput, request: Request):
 | plan_execute | PlanAndExecute | 计划-执行模式 |
 | reflexion | Reflexion | 反思改进模式 |
 
-### 13.2 相关文档
+### 14.2 相关文档
 
 - [产品需求文档](./ProductRequirements.md)
 - [系统架构设计](./SystemArchitecture.md)

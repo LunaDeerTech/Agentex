@@ -398,9 +398,88 @@
 
 ---
 
-## 7. 知识库模块
+## 7. 自定义 Agent 模块
 
-### 7.1 knowledge_bases 表（知识库表）
+### 7.1 custom_agents 表（自定义 Agent 表）
+
+存储用户自定义的 Agent 配置，允许用户预设 Agent 架构、系统提示词和默认资源。
+
+| 字段名 | 类型 | 约束 | 说明 |
+|--------|------|------|------|
+| id | UUID | PK | Agent ID |
+| name | VARCHAR(100) | NOT NULL | Agent 名称 |
+| description | TEXT | | Agent 描述 |
+| agent_type | VARCHAR(50) | NOT NULL | Agent 架构类型：react/agentic_rag/plan_execute |
+| system_prompt | TEXT | | 系统提示词 |
+| icon | VARCHAR(100) | | Agent 图标（emoji 或图标名） |
+| is_default | BOOLEAN | DEFAULT FALSE | 是否为系统默认 Agent |
+| enabled | BOOLEAN | DEFAULT TRUE | 是否启用 |
+| owner_id | UUID | FK → users.id | 所有者（系统默认时为 NULL） |
+| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
+| updated_at | TIMESTAMP | DEFAULT NOW() | 更新时间 |
+
+**索引：**
+- `idx_custom_agents_owner_id` ON (owner_id)
+- `idx_custom_agents_is_default` ON (is_default)
+- `idx_custom_agents_agent_type` ON (agent_type)
+
+**预置数据（系统默认 Agent）：**
+| name | agent_type | description | is_default |
+|------|------------|-------------|------------|
+| ReAct Agent | react | 支持多轮思考和工具调用的通用 Agent | TRUE |
+| RAG Agent | agentic_rag | 专注于知识库检索的 Agent | TRUE |
+| Plan & Execute Agent | plan_execute | 先规划后执行的任务分解 Agent | TRUE |
+
+### 7.2 agent_knowledge_bases 表（Agent 关联知识库表）
+
+存储 Agent 默认关联的知识库。
+
+| 字段名 | 类型 | 约束 | 说明 |
+|--------|------|------|------|
+| id | UUID | PK | 主键 |
+| agent_id | UUID | FK → custom_agents.id, NOT NULL | Agent ID |
+| knowledge_base_id | UUID | FK → knowledge_bases.id, NOT NULL | 知识库 ID |
+| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
+
+**约束：**
+- UNIQUE (agent_id, knowledge_base_id)
+- ON DELETE CASCADE (agent_id, knowledge_base_id)
+
+### 7.3 agent_mcp_connections 表（Agent 关联 MCP 连接表）
+
+存储 Agent 默认关联的 MCP 连接。
+
+| 字段名 | 类型 | 约束 | 说明 |
+|--------|------|------|------|
+| id | UUID | PK | 主键 |
+| agent_id | UUID | FK → custom_agents.id, NOT NULL | Agent ID |
+| mcp_connection_id | UUID | FK → mcp_connections.id, NOT NULL | MCP 连接 ID |
+| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
+
+**约束：**
+- UNIQUE (agent_id, mcp_connection_id)
+- ON DELETE CASCADE (agent_id, mcp_connection_id)
+
+### 7.4 agent_skills 表（Agent 关联 SKILL 表）
+
+存储 Agent 默认关联的 SKILL。
+
+| 字段名 | 类型 | 约束 | 说明 |
+|--------|------|------|------|
+| id | UUID | PK | 主键 |
+| agent_id | UUID | FK → custom_agents.id, NOT NULL | Agent ID |
+| skill_id | UUID | FK → skills.id, NOT NULL | SKILL ID |
+| created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
+
+**约束：**
+- UNIQUE (agent_id, skill_id)
+- ON DELETE CASCADE (agent_id, skill_id)
+
+---
+
+## 8. 知识库模块
+
+### 8.1 knowledge_bases 表（知识库表）
 
 | 字段名 | 类型 | 约束 | 说明 |
 |--------|------|------|------|
@@ -421,7 +500,7 @@
 **索引：**
 - `idx_knowledge_bases_owner_id` ON (owner_id)
 
-### 7.2 kb_documents 表（知识库文档表）
+### 8.2 kb_documents 表（知识库文档表）
 
 | 字段名 | 类型 | 约束 | 说明 |
 |--------|------|------|------|
@@ -448,7 +527,7 @@
 - `idx_kb_documents_knowledge_base_id` ON (knowledge_base_id)
 - `idx_kb_documents_status` ON (status)
 
-### 7.3 kb_chunks 表（知识库分块表）
+### 8.3 kb_chunks 表（知识库分块表）
 
 存储文档分块的元数据（向量存储在 Milvus/Qdrant）。
 
@@ -468,9 +547,9 @@
 
 ---
 
-## 8. 规则引擎模块
+## 9. 规则引擎模块
 
-### 8.1 rules 表（规则表）
+### 9.1 rules 表（规则表）
 
 | 字段名 | 类型 | 约束 | 说明 |
 |--------|------|------|------|
@@ -527,7 +606,7 @@
 - `idx_rules_owner_id` ON (owner_id)
 - `idx_rules_enabled` ON (enabled)
 
-### 8.2 rule_logs 表（规则执行日志表）
+### 9.2 rule_logs 表（规则执行日志表）
 
 | 字段名 | 类型 | 约束 | 说明 |
 |--------|------|------|------|
@@ -553,9 +632,9 @@
 
 ---
 
-## 9. 系统模块
+## 10. 系统模块
 
-### 9.1 system_configs 表（系统配置表）
+### 10.1 system_configs 表（系统配置表）
 
 | 字段名 | 类型 | 约束 | 说明 |
 |--------|------|------|------|
@@ -568,7 +647,7 @@
 | created_at | TIMESTAMP | DEFAULT NOW() | 创建时间 |
 | updated_at | TIMESTAMP | DEFAULT NOW() | 更新时间 |
 
-### 9.2 operation_logs 表（操作日志表）
+### 10.2 operation_logs 表（操作日志表）
 
 | 字段名 | 类型 | 约束 | 说明 |
 |--------|------|------|------|
@@ -589,9 +668,9 @@
 
 ---
 
-## 10. Redis 数据结构
+## 11. Redis 数据结构
 
-### 10.1 会话缓存
+### 11.1 会话缓存
 
 | Key 模式 | 类型 | TTL | 说明 |
 |---------|------|-----|------|
@@ -599,7 +678,7 @@
 | `token:blacklist:{token_jti}` | String | 7d | Token 黑名单 |
 | `user:permissions:{user_id}` | Hash | 5min | 用户权限缓存 |
 
-### 10.2 实时状态
+### 11.2 实时状态
 
 | Key 模式 | 类型 | TTL | 说明 |
 |---------|------|-----|------|
@@ -607,14 +686,14 @@
 | `mcp:status:{connection_id}` | Hash | - | MCP 连接状态 |
 | `agent:task:{session_id}` | Hash | 1h | Agent 任务状态 |
 
-### 10.3 规则引擎
+### 11.3 规则引擎
 
 | Key 模式 | 类型 | TTL | 说明 |
 |---------|------|-----|------|
 | `rule:cooldown:{rule_id}` | String | 动态 | 规则冷却状态 |
 | `rule:event_mapping:{event_type}` | Set | - | 事件类型到规则 ID 的映射 |
 
-### 10.4 限流
+### 11.4 限流
 
 | Key 模式 | 类型 | TTL | 说明 |
 |---------|------|-----|------|
@@ -623,9 +702,9 @@
 
 ---
 
-## 11. 向量数据库结构
+## 12. 向量数据库结构
 
-### 11.1 Milvus Collection 设计
+### 12.1 Milvus Collection 设计
 
 **知识库向量集合：**
 
@@ -643,7 +722,7 @@ Collection: kb_{knowledge_base_id}
 - vector 字段：IVF_FLAT 索引，nlist=1024
 ```
 
-### 11.2 Qdrant Collection 设计（备选）
+### 12.2 Qdrant Collection 设计（备选）
 
 ```
 Collection: kb_{knowledge_base_id}
@@ -661,7 +740,7 @@ Payload:
 
 ---
 
-## 12. ER 图
+## 13. ER 图
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -727,6 +806,25 @@ Payload:
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────┐
+│                               自定义 Agent 模块                                  │
+│                                                                                  │
+│  ┌───────────────┐     ┌───────────────────────┐                               │
+│  │ custom_agents │────►│ agent_knowledge_bases │────► knowledge_bases          │
+│  └───────┬───────┘     └───────────────────────┘                               │
+│          │                                                                       │
+│          │             ┌───────────────────────┐                               │
+│          ├────────────►│ agent_mcp_connections │────► mcp_connections          │
+│          │             └───────────────────────┘                               │
+│          │                                                                       │
+│          │             ┌───────────────────────┐                               │
+│          └────────────►│    agent_skills       │────► skills                   │
+│                        └───────────────────────┘                               │
+│                                                                                  │
+│          └── FK: owner_id → users.id (可为 NULL 表示系统默认)                   │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
 │                                  知识库模块                                      │
 │                                                                                  │
 │  ┌─────────────────┐     ┌──────────────┐     ┌───────────┐                    │
@@ -749,7 +847,7 @@ Payload:
 
 ---
 
-## 13. 附录
+## 14. 附录
 
 ### 13.1 数据库迁移
 

@@ -20,7 +20,7 @@ from app.schemas.session import (
 )
 from app.services.session import SessionService
 
-router = APIRouter(prefix="/sessions", tags=["sessions"])
+router = APIRouter()
 
 
 def get_session_service(db: AsyncSession = Depends(get_db)) -> SessionService:

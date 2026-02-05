@@ -6,16 +6,9 @@ from typing import Any
 
 from sqlalchemy import DateTime, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
-
-class Base(DeclarativeBase):
-    """Base class for all SQLAlchemy models."""
-
-    # Type annotation map for common types
-    type_annotation_map = {
-        datetime: DateTime(timezone=True),
-    }
+from app.core.database import Base
 
 
 class TimestampMixin:

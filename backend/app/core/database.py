@@ -16,7 +16,9 @@ Connection Pool Configuration:
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from datetime import datetime
 
+from sqlalchemy import DateTime
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -31,7 +33,10 @@ from app.core.config import settings
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
 
-    pass
+    # Type annotation map for common types
+    type_annotation_map = {
+        datetime: DateTime(timezone=True),
+    }
 
 
 # Create async engine with connection pooling

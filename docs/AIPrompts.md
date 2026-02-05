@@ -1,7 +1,7 @@
 # Agentex AI 开发 Prompt 指南
 
-> **版本**：1.1
-> **更新日期**：2026-02
+> **版本**：1.2
+> **更新日期**：2026-02-05
 > **用途**：为 AI 辅助开发提供标准化 Prompt 模板
 
 ---
@@ -950,7 +950,6 @@ class BaseAgent(ABC):
 - 停止生成按钮（流式输出时显示）
 - 重新生成按钮
 - 快捷键支持（Enter 发送，Shift+Enter 换行）
-- 附件上传（可选）
 
 **要求：**
 1. 组件解耦，可复用
@@ -1419,6 +1418,299 @@ class VectorStore(ABC):
 - app/rag/embeddings.py
 - app/tasks/document_tasks.py
 - app/api/v1/knowledge.py
+```
+
+### 任务 10.10-10.11：自定义 Agent 表设计和 API
+
+```markdown
+## 任务：实现自定义 Agent 数据管理
+
+请帮我实现自定义 Agent 的数据库表设计和 CRUD API。
+
+**10.10 自定义 Agent 表设计：**
+
+custom_agents 表：
+- id (UUID, PK)
+- name - Agent 名称
+- description - Agent 描述
+- agent_type - Agent 架构类型（react, agentic_rag, plan_execute）
+- system_prompt (TEXT) - 系统提示词
+- icon - Agent 图标（emoji 或图标名）
+- is_default (BOOLEAN) - 是否为系统默认 Agent
+- enabled (BOOLEAN) - 是否启用
+- owner_id (FK -> users, nullable) - 所有者（系统默认时为 NULL）
+- created_at, updated_at
+
+agent_knowledge_bases 表（关联知识库）：
+- id (UUID, PK)
+- agent_id (FK -> custom_agents, ON DELETE CASCADE)
+- knowledge_base_id (FK -> knowledge_bases, ON DELETE CASCADE)
+- created_at
+- UNIQUE (agent_id, knowledge_base_id)
+
+agent_mcp_connections 表（关联 MCP 连接）：
+- id (UUID, PK)
+- agent_id (FK -> custom_agents, ON DELETE CASCADE)
+- mcp_connection_id (FK -> mcp_connections, ON DELETE CASCADE)
+- created_at
+- UNIQUE (agent_id, mcp_connection_id)
+
+agent_skills 表（关联 SKILL）：
+- id (UUID, PK)
+- agent_id (FK -> custom_agents, ON DELETE CASCADE)
+- skill_id (FK -> skills, ON DELETE CASCADE)
+- created_at
+- UNIQUE (agent_id, skill_id)
+
+**系统默认 Agent 初始化数据：**
+| name | agent_type | is_default | description |
+|------|------------|------------|-------------|
+| ReAct Agent | react | true | 支持多轮思考和工具调用的通用 Agent |
+| RAG Agent | agentic_rag | true | 专注于知识库检索的 Agent |
+| Plan & Execute Agent | plan_execute | true | 先规划后执行的任务分解 Agent |
+
+**10.11 自定义 Agent CRUD API：**
+- GET /api/v1/agents - 获取 Agent 列表（含系统默认和用户自定义）
+- GET /api/v1/agents/{id} - 获取 Agent 详情（包含关联资源）
+- POST /api/v1/agents - 创建自定义 Agent
+- PUT /api/v1/agents/{id} - 更新自定义 Agent（不能修改系统默认）
+- DELETE /api/v1/agents/{id} - 删除自定义 Agent（不能删除系统默认）
+- GET /api/v1/agents/types - 获取所有 Agent 架构类型及默认提示词
+- POST /api/v1/agents/{id}/duplicate - 复制 Agent（可基于默认创建自定义版本）
+
+**要求：**
+1. 系统默认 Agent（is_default=true）不可编辑和删除
+2. 关联资源需验证用户访问权限
+3. 同一用户下 Agent 名称不能重复
+4. 每用户最多 50 个自定义 Agent
+5. 复制时继承原 Agent 的所有配置
+
+**参考：**
+- docs/DatabaseDesign.md 第 7 节
+- docs/APIDesign.md 第 11 节
+- docs/BackendDesign.md 第 2.8 节
+
+**输出：**
+- app/models/custom_agent.py
+- app/schemas/custom_agent.py
+- app/api/v1/agents.py
+- app/services/custom_agent.py
+- alembic/versions/xxx_create_custom_agent_tables.py
+```
+
+### 任务 10.12-10.13：Agent 资源关联和初始化
+
+```markdown
+## 任务：实现 Agent 资源关联和系统默认 Agent 初始化
+
+**10.12 Agent 资源关联 API：**
+
+在 Agent CRUD 中实现资源关联管理：
+
+创建/更新 Agent 请求体：
+```json
+{
+  "name": "运维助手",
+  "description": "专注于服务器运维的 Agent",
+  "agent_type": "react",
+  "icon": "🔧",
+  "system_prompt": "You are an expert DevOps engineer...",
+  "knowledge_base_ids": ["kb-uuid-1", "kb-uuid-2"],
+  "mcp_connection_ids": ["mcp-uuid-1"],
+  "skill_ids": ["skill-uuid-1"],
+  "enabled": true
+}
+```
+
+获取 Agent 详情响应：
+```json
+{
+  "id": "uuid",
+  "name": "运维助手",
+  "agent_type": "react",
+  "knowledge_bases": [
+    { "id": "kb-uuid-1", "name": "技术文档知识库" }
+  ],
+  "mcp_connections": [
+    { "id": "mcp-uuid-1", "name": "GitHub MCP" }
+  ],
+  "skills": [
+    { "id": "skill-uuid-1", "name": "代码审查" }
+  ],
+  ...
+}
+```
+
+**10.13 系统默认 Agent 初始化：**
+
+创建数据库迁移或初始化脚本，插入三个系统默认 Agent：
+
+1. **ReAct Agent**
+   - agent_type: react
+   - system_prompt: 包含思考-行动-观察循环的提示词
+   - 不关联任何资源
+
+2. **RAG Agent**
+   - agent_type: agentic_rag
+   - system_prompt: 包含知识检索和引用的提示词
+   - 不关联任何资源
+
+3. **Plan & Execute Agent**
+   - agent_type: plan_execute
+   - system_prompt: 包含任务分解和执行的提示词
+   - 不关联任何资源
+
+**要求：**
+1. 迁移脚本需幂等（可重复执行）
+2. 系统默认 Agent 的 owner_id 为 NULL
+3. 默认提示词参考 docs/BackendDesign.md 第 3 节
+
+**输出：**
+- alembic/versions/xxx_init_default_agents.py
+- app/services/custom_agent.py（更新）
+```
+
+### 任务 10.14-10.15：Agent 管理页面和选择器
+
+```markdown
+## 任务：实现 Agent 管理前端页面和选择器组件
+
+**10.14 Agent 管理页面 (AgentsView)：**
+
+页面布局：
+- 标题栏：「Agent 管理」+ 「创建 Agent」按钮
+- 系统默认 Agent 分组
+  - 卡片展示：图标、名称、描述、架构类型
+  - 只显示「复制」按钮
+- 我的 Agent 分组
+  - 卡片展示：图标、名称、描述、架构类型、关联资源数量
+  - 操作按钮：编辑、复制、删除
+
+创建/编辑 Agent 弹窗：
+- 基本信息区域
+  - Agent 名称（必填）
+  - 图标选择器（emoji picker）
+  - 描述（可选）
+  - Agent 架构选择（下拉）
+- 系统提示词区域
+  - 多行文本编辑器
+  - 「使用默认提示词」按钮
+- 预配置资源区域
+  - 知识库多选下拉
+  - MCP 连接多选下拉
+  - SKILL 多选下拉
+- 启用开关
+- 保存/取消按钮
+
+**10.15 Agent 选择器组件 (CustomAgentSelector)：**
+
+位置：对话输入框左侧，attach 图标之前
+
+组件结构：
+- 触发按钮
+  - 当前 Agent 图标
+  - 当前 Agent 名称
+  - 下拉箭头
+- 下拉菜单
+  - 搜索框
+  - 「默认 Agent」分组标题
+    - ReAct Agent
+    - RAG Agent
+    - Plan & Execute Agent
+  - 「我的 Agent」分组标题
+    - 用户自定义 Agent 列表
+  - 分隔线
+  - 「管理 Agent」链接（跳转设置页）
+
+**要求：**
+1. 使用 shadcn-vue 组件（Select, Dialog, Popover）
+2. Linear 风格（深色主题、1px 边框）
+3. 支持键盘导航
+4. 搜索支持模糊匹配
+
+**输出：**
+- src/views/settings/AgentsView.vue
+- src/components/agent/AgentList.vue
+- src/components/agent/AgentCard.vue
+- src/components/agent/AgentFormDialog.vue
+- src/components/agent/EmojiPicker.vue
+- src/components/chat/CustomAgentSelector.vue
+- src/api/agents.ts
+- src/stores/agents.ts
+```
+
+### 任务 10.16-10.17：Agent 资源自动应用和复制
+
+```markdown
+## 任务：实现 Agent 选择后资源自动应用和复制功能
+
+**10.16 Agent 资源自动应用：**
+
+当用户在对话界面选择一个 Agent 时：
+
+1. 更新会话配置的 agent_type 和 system_prompt
+2. 获取该 Agent 预配置的资源列表
+3. 自动勾选对应的知识库
+4. 自动勾选对应的 MCP 连接
+5. 自动勾选对应的 SKILL
+6. 用户可以在预配置基础上额外添加或取消资源
+
+实现方式：
+```typescript
+// src/composables/useAgentConfig.ts
+export function useAgentConfig() {
+  const sessionStore = useSessionStore()
+  const agentStore = useAgentStore()
+
+  async function selectAgent(agentId: string) {
+    const agent = await agentStore.getAgentDetail(agentId)
+
+    // 更新会话配置
+    sessionStore.updateConfig({
+      agent_type: agent.agent_type,
+      system_prompt: agent.system_prompt,
+      knowledge_base_ids: agent.knowledge_bases.map(kb => kb.id),
+      mcp_connection_ids: agent.mcp_connections.map(mcp => mcp.id),
+      skill_ids: agent.skills.map(skill => skill.id)
+    })
+
+    // 触发 UI 更新
+    emit('agent-changed', agent)
+  }
+
+  return { selectAgent }
+}
+```
+
+**10.17 Agent 复制功能：**
+
+复制 Agent API 调用：
+- POST /api/v1/agents/{agent_id}/duplicate
+- 请求体：{ "name": "我的 ReAct Agent" }
+
+复制逻辑：
+1. 复制原 Agent 的所有配置（agent_type, system_prompt, icon）
+2. 复制关联的知识库、MCP 连接、SKILL
+3. 设置 is_default = false
+4. 设置 owner_id = 当前用户
+5. 使用新名称
+
+前端交互：
+1. 点击「复制」按钮
+2. 弹出输入框，输入新 Agent 名称
+3. 确认后调用 API
+4. 成功后跳转到编辑页面
+
+**要求：**
+1. 复制时验证资源访问权限（复制系统默认 Agent 时无需验证）
+2. 复制失败时给出明确错误提示
+3. 提供良好的加载状态反馈
+
+**输出：**
+- src/composables/useAgentConfig.ts
+- src/components/chat/ChatInput.vue（更新）
+- src/components/agent/DuplicateAgentDialog.vue
+- src/stores/agents.ts（更新）
 ```
 
 ---
