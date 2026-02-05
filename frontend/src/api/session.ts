@@ -99,7 +99,7 @@ export function getSession(sessionId: string): Promise<Session> {
  * Update session
  */
 export function updateSession(sessionId: string, params: SessionUpdateParams): Promise<Session> {
-  return request.patch(`/sessions/${sessionId}`, params)
+  return request.put(`/sessions/${sessionId}`, params)
 }
 
 /**

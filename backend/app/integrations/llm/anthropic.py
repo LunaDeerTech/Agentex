@@ -53,7 +53,7 @@ class AnthropicClient(BaseLLMClient):
         system_prompt = None
         formatted = []
 
-        for msg in messages:
+        for msg in messages or []:
             if msg.role == MessageRole.SYSTEM:
                 system_prompt = msg.content
                 continue

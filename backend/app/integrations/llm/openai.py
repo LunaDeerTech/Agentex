@@ -40,10 +40,10 @@ class OpenAIClient(BaseLLMClient):
     def _format_messages(self, messages: list[LLMMessage]) -> list[dict]:
         """Convert LLMMessage objects to OpenAI format."""
         formatted = []
-        for msg in messages:
+        for msg in messages or []:
             message_dict: dict[str, Any] = {
                 "role": msg.role.value,
-                "content": msg.content,
+                "content": msg.content or "",
             }
             if msg.name:
                 message_dict["name"] = msg.name
@@ -158,6 +158,11 @@ class OpenAIClient(BaseLLMClient):
 
                     try:
                         data = json.loads(data_str)
+
+                        # Check if choices array is not empty
+                        if not data.get("choices"):
+                            continue
+
                         choice = data["choices"][0]
                         delta = choice.get("delta", {})
 
@@ -166,7 +171,7 @@ class OpenAIClient(BaseLLMClient):
 
                         # Handle tool calls in streaming
                         tool_calls = None
-                        if "tool_calls" in delta:
+                        if delta.get("tool_calls"):
                             for tc in delta["tool_calls"]:
                                 idx = tc["index"]
                                 if idx not in tool_calls_buffer:
