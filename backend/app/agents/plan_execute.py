@@ -397,8 +397,10 @@ class PlanAndExecuteAgent(BaseAgent):
         yield self.emit_step_started("planning")
 
         planning_prompt = self._build_planning_prompt()
+        # Include conversation history for context (last 10 messages before current)
         messages = [
             LLMMessage(role=MessageRole.SYSTEM, content=planning_prompt),
+            *context.message_history[:-1][-10:],  # Last 10 historical messages
             LLMMessage(role=MessageRole.USER, content=message),
         ]
 
@@ -463,12 +465,10 @@ class PlanAndExecuteAgent(BaseAgent):
 
             # Build execution prompt
             execution_prompt = self._build_execution_prompt(plan, task)
+            # Include conversation history for context
             exec_messages = [
                 LLMMessage(role=MessageRole.SYSTEM, content=execution_prompt),
-                LLMMessage(
-                    role=MessageRole.USER,
-                    content=f"Execute task: {task.title}",
-                ),
+                *context.message_history[-5:],  # Last 5 messages for context
             ]
 
             retry_count = 0
@@ -483,7 +483,7 @@ class PlanAndExecuteAgent(BaseAgent):
                     return
 
                 exec_content = ""
-                async for chunk in self.llm_client.chat_stream(
+                async for chunk in await self.llm_client.chat_stream(
                     messages=exec_messages,
                     temperature=self.config.temperature,
                     max_tokens=self.config.max_tokens,
@@ -586,18 +586,16 @@ class PlanAndExecuteAgent(BaseAgent):
         yield self.emit_step_started("synthesis")
 
         synthesis_prompt = self._build_synthesis_prompt(plan)
+        # Include conversation history to maintain context in final answer
         synthesis_messages = [
             LLMMessage(role=MessageRole.SYSTEM, content=synthesis_prompt),
-            LLMMessage(
-                role=MessageRole.USER,
-                content="Synthesize the results and provide a final answer.",
-            ),
+            *context.message_history[-5:],  # Last 5 messages for context
         ]
 
         final_message_id = str(uuid4())
         yield self.emit_text_start(final_message_id)
 
-        async for chunk in self.llm_client.chat_stream(
+        async for chunk in await self.llm_client.chat_stream(
             messages=synthesis_messages,
             temperature=self.config.temperature,
             max_tokens=self.config.max_tokens,
