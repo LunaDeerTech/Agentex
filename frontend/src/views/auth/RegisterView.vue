@@ -68,7 +68,7 @@
         <p class="mt-2 text-sm text-[var(--color-text-secondary)]">Create your account</p>
       </div>
 
-      <form @submit.prevent="handleRegister" class="space-y-4">
+      <form class="space-y-4" @submit.prevent="handleRegister">
         <div class="space-y-2">
           <label class="text-sm font-medium text-[var(--color-text-secondary)]">Username</label>
           <Input

@@ -1,23 +1,21 @@
 <template>
-  <div class="relative" ref="containerRef">
+  <div ref="containerRef" class="relative">
     <button
       type="button"
+      class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors text-xs max-w-[200px]"
+      :class="{ 'text-foreground bg-white/5': isOpen }"
       @click="toggleDropdown"
-      class="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--color-border-default)] bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] transition-colors w-full"
-      :class="{ 'ring-2 ring-[var(--color-primary)]': isOpen }"
+      title="Select model"
     >
       <template v-if="selectedModel">
-        <span class="text-lg">{{ getProviderIcon(selectedModel.provider) }}</span>
-        <span class="flex-1 text-left truncate">{{ selectedModel.name }}</span>
-        <span class="text-xs text-[var(--color-text-tertiary)]">
-          {{ selectedModel.model_id }}
-        </span>
+        <span class="text-base flex-shrink-0">{{ getProviderIcon(selectedModel.provider) }}</span>
+        <span class="flex-1 text-left truncate font-medium">{{ selectedModel.name }}</span>
       </template>
       <template v-else>
-        <span class="text-[var(--color-text-tertiary)]">Select a model</span>
+        <span class="text-muted-foreground">Select a model</span>
       </template>
       <svg
-        class="w-4 h-4 text-[var(--color-text-tertiary)] transition-transform"
+        class="w-3 h-3 text-muted-foreground/50 transition-transform flex-shrink-0"
         :class="{ 'rotate-180': isOpen }"
         fill="none"
         stroke="currentColor"
@@ -38,17 +36,15 @@
     >
       <div
         v-if="isOpen"
-        class="absolute z-50 mt-1 w-full bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] rounded-lg shadow-lg overflow-hidden"
+        class="absolute z-50 mb-2 bottom-full right-0 w-64 bg-background border border-border rounded-xl shadow-xl overflow-hidden"
       >
         <!-- Loading -->
-        <div v-if="isLoading" class="p-4 text-center text-[var(--color-text-tertiary)]">
-          Loading models...
-        </div>
+        <div v-if="isLoading" class="p-4 text-center text-muted-foreground">Loading models...</div>
 
         <!-- Empty -->
         <div v-else-if="enabledModels.length === 0" class="p-4 text-center">
-          <p class="text-[var(--color-text-tertiary)] text-sm mb-2">No models configured</p>
-          <button @click="goToSettings" class="text-sm text-[var(--color-primary)] hover:underline">
+          <p class="text-muted-foreground text-sm mb-2">No models configured</p>
+          <button class="text-sm text-primary hover:underline" @click="goToSettings">
             Add a model →
           </button>
         </div>
@@ -58,11 +54,11 @@
           <div
             v-for="provider in Object.keys(modelsByProvider)"
             :key="provider"
-            class="border-b border-[var(--color-border-muted)] last:border-b-0"
+            class="border-b border-border/50 last:border-b-0"
           >
             <!-- Provider Header -->
             <div
-              class="px-3 py-2 bg-[var(--color-bg-muted)] text-xs font-medium text-[var(--color-text-tertiary)] uppercase tracking-wide"
+              class="px-3 py-2 bg-muted/50 text-xs font-medium text-muted-foreground uppercase tracking-wide"
             >
               {{ getProviderLabel(provider) }}
             </div>
@@ -72,30 +68,30 @@
               v-for="model in modelsByProvider[provider]"
               :key="model.id"
               type="button"
-              @click="selectModel(model)"
-              class="w-full flex items-center gap-3 px-3 py-2 hover:bg-[var(--color-bg-muted)] transition-colors"
+              class="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/50 transition-colors"
               :class="{
-                'bg-[var(--color-bg-muted)]': modelValue === model.id
+                'bg-muted': modelValue === model.id
               }"
+              @click="selectModel(model)"
             >
               <span class="text-lg">{{ getProviderIcon(model.provider) }}</span>
               <div class="flex-1 text-left">
                 <div class="flex items-center gap-2">
-                  <span class="text-[var(--color-text-primary)]">{{ model.name }}</span>
+                  <span class="text-foreground text-sm">{{ model.name }}</span>
                   <span
                     v-if="model.is_default"
-                    class="px-1.5 py-0.5 text-xs rounded bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                    class="px-1.5 py-0.5 text-[10px] rounded bg-primary/10 text-primary uppercase font-bold"
                   >
                     Default
                   </span>
                 </div>
-                <div class="text-xs text-[var(--color-text-tertiary)]">
+                <div class="text-[10px] text-muted-foreground">
                   {{ model.model_id }}
                 </div>
               </div>
               <svg
                 v-if="modelValue === model.id"
-                class="w-4 h-4 text-[var(--color-primary)]"
+                class="w-4 h-4 text-primary"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -110,18 +106,19 @@
         </div>
 
         <!-- Footer -->
-        <div class="border-t border-[var(--color-border-muted)] p-2">
+        <div class="border-t border-border p-2 bg-muted/20">
           <button
+            class="w-full text-left px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex items-center gap-2"
             @click="goToSettings"
-            class="w-full text-left px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-muted)] rounded transition-colors"
           >
-            ⚙️ Manage models
+            <span>⚙️</span> Manage models
           </button>
         </div>
       </div>
     </Transition>
   </div>
 </template>
+>
 
 <script setup lang="ts">
   import { ref, computed, onMounted, onUnmounted, watch } from 'vue'

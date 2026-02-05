@@ -7,6 +7,9 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+# Import all models to ensure they're registered with SQLAlchemy
+# This must happen before any database queries
+from app import models  # noqa: F401
 from app.api import health
 from app.api.middleware import RequestLoggingMiddleware
 from app.api.v1 import api_router as api_v1_router

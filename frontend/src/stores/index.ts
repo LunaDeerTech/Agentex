@@ -6,6 +6,6 @@ export default pinia
 
 // 导出所有 stores
 export * from './modules/user'
-export * from './modules/session'
+export * from './session'
 export * from './modules/app'
 export * from './auth'

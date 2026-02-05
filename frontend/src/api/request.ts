@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
@@ -27,7 +28,7 @@ request.interceptors.request.use(
     }
     return config
   },
-  (error) => {
+  error => {
     console.error('Request error:', error)
     return Promise.reject(error)
   }
@@ -37,32 +38,32 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response: AxiosResponse) => {
     const res = response.data as ApiResponse
-    
+
     // Backend convention: code 0 is success
     if (res.code === 0) {
       return res.data
     }
-    
+
     // If it's not code 0, it's an error
     if (res.code !== undefined && res.code !== 0) {
-       console.error(`API Error [${res.code}]: ${res.message}`)
-       return Promise.reject(new Error(res.message || 'Error'))
+      console.error(`API Error [${res.code}]: ${res.message}`)
+      return Promise.reject(new Error(res.message || 'Error'))
     }
 
     // Fallback for responses that don't follow the wrapper structure
     return response.data
   },
-  (error) => {
+  error => {
     const authStore = useAuthStore()
     console.error('Response error:', error)
-    
+
     if (error.response?.status === 401) {
       authStore.logout()
       if (!window.location.pathname.includes('/login')) {
-         window.location.href = '/login'
+        window.location.href = '/login'
       }
     }
-    
+
     const message = error.response?.data?.message || error.message || 'Network Error'
     return Promise.reject(new Error(message))
   }
