@@ -1,12 +1,16 @@
 <script setup lang="ts">
   /**
    * MessageItem Component
-   * Renders a single message with support for Markdown and code highlighting
+   * Renders a single message with support for Markdown, code highlighting,
+   * tool calls display, and thinking process visualization.
    */
 
   import { computed, ref } from 'vue'
   import { User, Bot, Copy, Check, AlertCircle, Loader2 } from 'lucide-vue-next'
-  import type { LocalMessage } from '@/stores/session'
+  import type { LocalMessage, ToolCall, AgentStep } from '@/stores/session'
+  import ThinkingProcess from './ThinkingProcess.vue'
+  import ToolCallDisplay from './ToolCallDisplay.vue'
+  import { renderMarkdown } from '@/lib/markdown'
 
   interface Props {
     message: LocalMessage
@@ -35,38 +39,47 @@
   const isStreaming = computed(() => props.message.status === 'streaming')
   const isError = computed(() => props.message.status === 'error')
 
-  // Parse markdown content (basic implementation)
-  // In production, use a proper markdown library like marked or markdown-it
+  // Render markdown content using markdown-it
   const renderedContent = computed(() => {
-    let content = props.message.content
+    if (!props.message.content) return ''
+    return renderMarkdown(props.message.content)
+  })
 
-    // Escape HTML
-    content = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // Convert tool calls to ThinkingProcess format for display
+  const hasToolCalls = computed(() => {
+    return props.message.toolCalls && props.message.toolCalls.length > 0
+  })
 
-    // Code blocks
-    content = content.replace(/```(\w*)\n([\s\S]*?)```/g, (_match, lang, code) => {
-      return `<pre class="code-block"><code class="language-${lang || 'text'}">${code.trim()}</code></pre>`
-    })
+  const toolCallsForDisplay = computed(() => {
+    if (!props.message.toolCalls) return []
+    return props.message.toolCalls.map((tc: ToolCall) => ({
+      id: tc.id,
+      name: tc.name,
+      arguments: tc.arguments,
+      result: tc.result,
+      status: tc.status
+    }))
+  })
 
-    // Inline code
-    content = content.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
+  // Convert steps for ThinkingProcess component
+  const hasSteps = computed(() => {
+    return props.message.steps && props.message.steps.length > 0
+  })
 
-    // Bold
-    content = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-
-    // Italic
-    content = content.replace(/\*([^*]+)\*/g, '<em>$1</em>')
-
-    // Links
-    content = content.replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>'
-    )
-
-    // Line breaks
-    content = content.replace(/\n/g, '<br>')
-
-    return content
+  const stepsForDisplay = computed(() => {
+    if (!props.message.steps) return []
+    return props.message.steps.map((s: AgentStep, idx: number) => ({
+      id: `step-${idx}`,
+      name: s.name,
+      status: (s.status === 'running' ? 'running' : 'completed') as
+        | 'pending'
+        | 'running'
+        | 'completed'
+        | 'error',
+      startTime: s.startTime,
+      endTime: s.endTime,
+      content: s.content // Pass the thinking content!
+    }))
   })
 
   // Copy message content
@@ -116,7 +129,30 @@
 
       <!-- Content -->
       <div class="flex-1 min-w-0 max-w-[85%]" :class="{ 'flex flex-col items-end': isUser }">
-        <!-- Message bubble -->
+        <!-- Thinking Process (for assistant messages - shown ABOVE the answer) -->
+        <ThinkingProcess
+          v-if="isAssistant && (hasSteps || isStreaming)"
+          :steps="stepsForDisplay"
+          :is-active="isStreaming"
+          :default-expanded="isStreaming"
+          class="mb-3 w-full"
+        />
+
+        <!-- Tool Calls Display (shown above the answer) -->
+        <div v-if="isAssistant && hasToolCalls" class="mb-3 space-y-2 w-full">
+          <ToolCallDisplay
+            v-for="toolCall in toolCallsForDisplay"
+            :id="toolCall.id"
+            :key="toolCall.id"
+            :name="toolCall.name"
+            :arguments="toolCall.arguments"
+            :result="toolCall.result"
+            :status="toolCall.status"
+            :default-expanded="false"
+          />
+        </div>
+
+        <!-- Message bubble (final answer) -->
         <div
           class="relative rounded-xl px-4 py-3"
           :class="[
@@ -126,32 +162,32 @@
             isError ? 'border-destructive/50' : ''
           ]"
         >
-          <!-- Streaming indicator -->
+          <!-- Streaming indicator (when no content yet) -->
           <div
             v-if="isStreaming && !message.content"
             class="flex items-center gap-2 text-muted-foreground"
           >
             <Loader2 class="w-4 h-4 animate-spin" :stroke-width="1.5" />
-            <span class="text-sm">Thinking...</span>
+            <span class="text-sm">生成回答中...</span>
           </div>
 
-          <!-- Message content -->
+          <!-- Message content with markdown rendering -->
           <div
-            v-else
-            class="prose prose-sm prose-invert max-w-none text-sm leading-relaxed"
+            v-else-if="message.content"
+            class="prose prose-sm prose-invert max-w-none text-sm leading-relaxed markdown-content"
             v-html="renderedContent"
           />
 
           <!-- Streaming cursor -->
           <span
             v-if="isStreaming && message.content"
-            class="inline-block w-2 h-4 ml-0.5 bg-primary animate-pulse"
+            class="inline-block w-0.5 h-4 ml-0.5 bg-primary animate-pulse"
           />
 
           <!-- Error indicator -->
           <div v-if="isError" class="flex items-center gap-2 mt-2 text-destructive text-xs">
             <AlertCircle class="w-3.5 h-3.5" :stroke-width="1.5" />
-            <span>Failed to send</span>
+            <span>发送失败</span>
           </div>
         </div>
 
@@ -195,10 +231,78 @@
 
   :deep(.code-block code) {
     color: var(--text-secondary);
+    white-space: pre;
   }
 
-  :deep(.inline-code) {
+  :deep(.inline-code),
+  :deep(code:not([class*='language-'])) {
     @apply px-1.5 py-0.5 rounded bg-secondary/80 text-primary font-mono text-xs;
+  }
+
+  /* Markdown content styling */
+  :deep(.markdown-content) {
+    line-height: 1.7;
+  }
+
+  :deep(.markdown-content h1),
+  :deep(.markdown-content h2),
+  :deep(.markdown-content h3),
+  :deep(.markdown-content h4) {
+    @apply font-semibold mt-4 mb-2;
+  }
+
+  :deep(.markdown-content h1) {
+    @apply text-lg;
+  }
+
+  :deep(.markdown-content h2) {
+    @apply text-base;
+  }
+
+  :deep(.markdown-content h3) {
+    @apply text-sm font-semibold;
+  }
+
+  :deep(.markdown-content ul),
+  :deep(.markdown-content ol) {
+    @apply pl-5 my-2;
+  }
+
+  :deep(.markdown-content ul) {
+    list-style-type: disc;
+  }
+
+  :deep(.markdown-content ol) {
+    list-style-type: decimal;
+  }
+
+  :deep(.markdown-content li) {
+    @apply my-1;
+  }
+
+  :deep(.markdown-content blockquote) {
+    @apply border-l-2 border-primary/50 pl-4 my-3 text-muted-foreground italic;
+  }
+
+  :deep(.markdown-content table) {
+    @apply w-full my-3 border-collapse;
+  }
+
+  :deep(.markdown-content th),
+  :deep(.markdown-content td) {
+    @apply border border-border px-3 py-2 text-left;
+  }
+
+  :deep(.markdown-content th) {
+    @apply bg-secondary/50 font-semibold;
+  }
+
+  :deep(.markdown-content hr) {
+    @apply my-4 border-border;
+  }
+
+  :deep(.markdown-content a) {
+    @apply text-primary hover:underline;
   }
 
   /* Prose adjustments for dark theme */

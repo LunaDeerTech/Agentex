@@ -1,15 +1,21 @@
 <script setup lang="ts">
   /**
    * ChatInput Component
-   * The input area for composing and sending messages
+   * Enhanced input area for composing and sending messages
+   * Features: multi-line input, auto-resize, keyboard shortcuts,
+   * stop/regenerate buttons, agent and model selectors
    */
 
-  import { ref, computed, watch, nextTick } from 'vue'
+  import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
   import { storeToRefs } from 'pinia'
-  import { Send, Paperclip, Square } from 'lucide-vue-next'
+  import { Send, Paperclip, Square, RefreshCw, Loader2, Sparkles } from 'lucide-vue-next'
   import { useSessionStore } from '@/stores/session'
   import { useModelsStore } from '@/stores/modules/models'
+  import type { SessionUpdateParams } from '@/api/session'
   import ModelSelector from './ModelSelector.vue'
+  import AgentSelector from './AgentSelector.vue'
+
+  type AgentType = 'react' | 'agentic_rag' | 'plan_execute'
 
   const sessionStore = useSessionStore()
   const modelsStore = useModelsStore()
@@ -19,8 +25,10 @@
   const textareaRef = ref<HTMLTextAreaElement | null>(null)
   const isFocused = ref(false)
   const selectedModelId = ref<string | null>(null)
+  const selectedAgentType = ref<AgentType>('react')
+  const isRegenerating = ref(false)
 
-  // Initialize selectedModelId
+  // Initialize selectedModelId and agent type
   watch(
     () => sessionStore.currentSession,
     session => {
@@ -28,6 +36,10 @@
         selectedModelId.value = session.model_config_id
       } else if (!selectedModelId.value && defaultModel.value) {
         selectedModelId.value = defaultModel.value.id
+      }
+
+      if (session?.agent_type) {
+        selectedAgentType.value = session.agent_type
       }
     },
     { immediate: true }
@@ -56,17 +68,43 @@
     }
   }
 
+  // Handle agent type change
+  async function handleAgentChange(agentType: string) {
+    selectedAgentType.value = agentType as AgentType
+
+    // If we have an active session, update it
+    if (sessionStore.currentSession) {
+      try {
+        const params: SessionUpdateParams = {
+          agent_type: agentType as AgentType
+        }
+        await sessionStore.updateSession(sessionStore.currentSession.id, params)
+      } catch (err) {
+        console.error('Failed to update session agent type:', err)
+      }
+    }
+  }
+
   // Computed states
   const canSend = computed(() => inputMessage.value.trim().length > 0 && !sessionStore.isStreaming)
   const isStreaming = computed(() => sessionStore.isStreaming)
   const hasSession = computed(() => sessionStore.currentSession !== null)
+  const hasMessages = computed(() => sessionStore.currentMessages.length > 0)
+  const canRegenerate = computed(() => {
+    const messages = sessionStore.currentMessages
+    if (messages.length < 2) return false
+    const lastMessage = messages[messages.length - 1]
+    return lastMessage?.role === 'assistant' && !isStreaming.value && !isRegenerating.value
+  })
 
-  // Auto-resize textarea
+  // Auto-resize textarea with smooth animation
   function autoResize() {
     nextTick(() => {
       if (textareaRef.value) {
+        // Reset height to auto to get the correct scrollHeight
         textareaRef.value.style.height = 'auto'
-        const newHeight = Math.min(textareaRef.value.scrollHeight, 200)
+        // Calculate new height with max limit
+        const newHeight = Math.min(Math.max(textareaRef.value.scrollHeight, 60), 200)
         textareaRef.value.style.height = `${newHeight}px`
       }
     })
@@ -91,7 +129,7 @@
       try {
         await sessionStore.createSession({
           title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
-          agent_type: 'react',
+          agent_type: selectedAgentType.value,
           model_config_id: selectedModelId.value || undefined
         })
       } catch (err) {
@@ -111,8 +149,21 @@
 
   // Stop streaming
   function handleStop() {
-    sessionStore.setStreaming(false)
-    // TODO: Actually cancel the streaming request
+    sessionStore.stopStreaming()
+  }
+
+  // Regenerate last response
+  async function handleRegenerate() {
+    if (!canRegenerate.value) return
+
+    isRegenerating.value = true
+    try {
+      await sessionStore.regenerateLastMessage()
+    } catch (err) {
+      console.error('Failed to regenerate:', err)
+    } finally {
+      isRegenerating.value = false
+    }
   }
 
   // Handle keyboard shortcuts
@@ -122,6 +173,28 @@
       e.preventDefault()
       handleSend()
     }
+
+    // Escape to blur
+    if (e.key === 'Escape') {
+      textareaRef.value?.blur()
+    }
+  }
+
+  // Global keyboard shortcuts
+  function handleGlobalKeydown(e: KeyboardEvent) {
+    // Cmd/Ctrl + Enter to send from anywhere
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      if (canSend.value) {
+        e.preventDefault()
+        handleSend()
+      }
+    }
+
+    // Focus input with / key when not in an input
+    if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes((e.target as Element)?.tagName)) {
+      e.preventDefault()
+      focusInput()
+    }
   }
 
   // Focus input
@@ -129,12 +202,33 @@
     textareaRef.value?.focus()
   }
 
+  // Lifecycle
+  onMounted(() => {
+    document.addEventListener('keydown', handleGlobalKeydown)
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('keydown', handleGlobalKeydown)
+  })
+
   // Expose focus method
   defineExpose({ focusInput })
 </script>
 
 <template>
   <div class="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto w-full">
+    <!-- Regenerate button (when last message is from assistant) -->
+    <div v-if="canRegenerate" class="flex justify-center mb-3">
+      <button
+        class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary border border-border/50 rounded-full transition-all"
+        :disabled="isRegenerating"
+        @click="handleRegenerate"
+      >
+        <RefreshCw class="w-3 h-3" :class="{ 'animate-spin': isRegenerating }" :stroke-width="2" />
+        <span>{{ isRegenerating ? '重新生成中...' : '重新生成' }}</span>
+      </button>
+    </div>
+
     <div
       class="relative flex flex-col bg-secondary/40 backdrop-blur-sm border rounded-xl transition-all shadow-lg"
       :class="[
@@ -147,8 +241,8 @@
       <textarea
         ref="textareaRef"
         v-model="inputMessage"
-        class="w-full bg-transparent border-none text-sm p-4 min-h-[60px] max-h-[200px] resize-none focus:ring-0 focus:outline-none placeholder:text-muted-foreground/70 font-sans leading-relaxed"
-        placeholder="Type your message..."
+        class="w-full bg-transparent border-none text-sm p-4 min-h-[60px] max-h-[200px] resize-none focus:ring-0 focus:outline-none placeholder:text-muted-foreground/70 font-sans leading-relaxed transition-[height] duration-150"
+        placeholder="输入消息... (Enter 发送, Shift+Enter 换行)"
         rows="1"
         :disabled="isStreaming"
         @keydown="handleKeydown"
@@ -158,12 +252,33 @@
 
       <!-- Bottom toolbar -->
       <div class="flex items-center justify-between p-2 pl-4 border-t border-border/30">
-        <!-- Left side: attachments -->
+        <!-- Left side: attachments and agent selector -->
         <div class="flex items-center gap-2">
+          <!-- Agent selector (when no session) -->
+          <AgentSelector
+            v-if="!hasSession || !hasMessages"
+            v-model="selectedAgentType"
+            :disabled="isStreaming"
+            class="hidden sm:block"
+            @update:model-value="handleAgentChange"
+          />
+
+          <!-- Current agent indicator (when session exists) -->
+          <div
+            v-else
+            class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary/50 text-xs text-muted-foreground"
+          >
+            <Sparkles class="w-3 h-3" :stroke-width="1.5" />
+            <span class="hidden md:inline">{{ selectedAgentType }}</span>
+          </div>
+
+          <!-- Divider -->
+          <div class="w-px h-4 bg-border/50 hidden sm:block" />
+
           <!-- Attach button -->
           <button
             class="p-2 text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-colors"
-            title="Attach file"
+            title="Attach file (coming soon)"
             :disabled="isStreaming"
           >
             <Paperclip class="w-4 h-4" :stroke-width="1.5" />
@@ -175,8 +290,9 @@
           <!-- Model selector -->
           <ModelSelector
             :model-value="selectedModelId"
-            @update:model-value="handleModelChange"
+            :disabled="isStreaming"
             class="hidden md:block"
+            @update:model-value="handleModelChange"
           />
 
           <!-- Stop button (when streaming) -->
@@ -186,7 +302,7 @@
             @click="handleStop"
           >
             <Square class="w-4 h-4" fill="currentColor" :stroke-width="0" />
-            <span class="text-sm font-medium">Stop</span>
+            <span class="text-sm font-medium hidden sm:inline">停止</span>
           </button>
 
           <!-- Send button -->
@@ -197,15 +313,25 @@
             title="Send message (Enter)"
             @click="handleSend"
           >
-            <Send class="w-4 h-4" :stroke-width="1.5" />
+            <Loader2 v-if="isRegenerating" class="w-4 h-4 animate-spin" :stroke-width="1.5" />
+            <Send v-else class="w-4 h-4" :stroke-width="1.5" />
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Disclaimer -->
-    <div class="text-center mt-3 text-[10px] text-muted-foreground/60 font-mono">
-      Agentex can make mistakes. Consider checking important information.
+    <!-- Hints -->
+    <div class="flex items-center justify-between mt-3 px-1">
+      <div class="text-[10px] text-muted-foreground/60 font-mono">
+        <span class="hidden sm:inline">
+          <kbd class="px-1 py-0.5 rounded bg-secondary/50 text-[9px]">Enter</kbd> 发送 ·
+          <kbd class="px-1 py-0.5 rounded bg-secondary/50 text-[9px]">Shift+Enter</kbd> 换行 ·
+          <kbd class="px-1 py-0.5 rounded bg-secondary/50 text-[9px]">/</kbd> 聚焦
+        </span>
+      </div>
+      <div class="text-[10px] text-muted-foreground/60 font-mono">
+        Agentex can make mistakes. Consider checking important information.
+      </div>
     </div>
   </div>
 </template>

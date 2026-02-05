@@ -4,8 +4,8 @@
       type="button"
       class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors text-xs max-w-[200px]"
       :class="{ 'text-foreground bg-white/5': isOpen }"
-      @click="toggleDropdown"
       title="Select model"
+      @click="toggleDropdown"
     >
       <template v-if="selectedModel">
         <span class="text-base flex-shrink-0">{{ getProviderIcon(selectedModel.provider) }}</span>

@@ -830,6 +830,7 @@ class BaseLLMClient(ABC):
     async def complete(self, prompt: str, **kwargs) -> str:
         """单次完成"""
         pass
+
 ```
 
 **参考：**
