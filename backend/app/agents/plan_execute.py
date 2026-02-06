@@ -483,7 +483,7 @@ class PlanAndExecuteAgent(BaseAgent):
                     return
 
                 exec_content = ""
-                async for chunk in await self.llm_client.chat_stream(
+                async for chunk in self.llm_client.chat_stream(
                     messages=exec_messages,
                     temperature=self.config.temperature,
                     max_tokens=self.config.max_tokens,
@@ -595,7 +595,7 @@ class PlanAndExecuteAgent(BaseAgent):
         final_message_id = str(uuid4())
         yield self.emit_text_start(final_message_id)
 
-        async for chunk in await self.llm_client.chat_stream(
+        async for chunk in self.llm_client.chat_stream(
             messages=synthesis_messages,
             temperature=self.config.temperature,
             max_tokens=self.config.max_tokens,
